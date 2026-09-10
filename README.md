@@ -11,6 +11,12 @@ initial Alembic migration, and a `/health` check. Auth, CRUD, the enhance pipeli
 entitlements, and deployment tooling land in subsequent phases; this README will grow
 into full setup/deploy docs at that point.
 
+Also included, ahead of the phased build order: a server-rendered **admin console**
+at `/admin` (Mirror staff only — separate session-cookie auth from the mobile app's
+JWT auth) covering users, subscriptions, enhance jobs, the shade library, client/look
+lookup, and an audit log of every admin action. See [Admin console](#admin-console)
+below.
+
 ## Tech stack
 
 - Python 3.12, FastAPI, Pydantic v2, pydantic-settings for config
@@ -36,4 +42,24 @@ Run tests with:
 
 ```
 pytest
+```
+
+## Admin console
+
+A server-rendered console for Mirror staff at `/admin`, built with Jinja2 templates
+(no separate frontend build/deploy). Authenticated via a signed session cookie —
+entirely separate from the mobile app's JWT auth — with three roles:
+
+- **owner** — everything, plus managing other admin accounts
+- **support** — day-to-day operations (edit subscriptions, retry jobs, manage shades)
+- **viewer** — read-only
+
+Covers: dashboard (usage/health metrics), users, subscriptions, enhance jobs (with
+retry), the shade library (CRUD), client/look lookup (read-only), and an append-only
+audit log of every state-changing admin action.
+
+There's no self-service admin signup by design. Create the first (owner) account with:
+
+```
+python scripts/create_admin.py owner@yourcompany.com --role owner
 ```

@@ -43,3 +43,12 @@ class EnhanceJobStatus(StrEnum):
     PROCESSING = "processing"
     DONE = "done"
     FAILED = "failed"
+
+
+class AdminRole(StrEnum):
+    """Owner can manage other admins and override anything; support is everyday
+    read/write operations; viewer is read-only (e.g. an accountant or auditor)."""
+
+    OWNER = "owner"
+    SUPPORT = "support"
+    VIEWER = "viewer"

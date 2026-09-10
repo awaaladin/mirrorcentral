@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime
 from sqlalchemy import JSON as SAJSON
+from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
 
 
@@ -25,6 +25,6 @@ class MakeupLook(SQLModel, table=True):
     source_photo_url: str = Field(nullable=False)
     layers: dict[str, Any] = Field(default_factory=dict, sa_column=Column(SAJSON, nullable=False))
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )

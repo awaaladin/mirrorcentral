@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import TypeVar
 
 from sqlalchemy import Enum as SAEnum
 
-E = TypeVar("E", bound=StrEnum)
 
-
-def pg_enum(enum_cls: type[E], name: str) -> SAEnum:
+def pg_enum[E: StrEnum](enum_cls: type[E], name: str) -> SAEnum:
     """A native Postgres ENUM column storing each member's lowercase `.value`.
 
     SQLAlchemy's `Enum` type stores the Python member *name* by default (e.g.

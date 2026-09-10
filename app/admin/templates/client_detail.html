@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ client.name }} · Mirror Admin{% endblock %}
+{% block content %}
+<a href="/admin/clients" class="text-sm text-on-surface-variant hover:underline">← Clients & Looks</a>
+<div class="mt-2 mb-8">
+  <h1 class="font-serif text-3xl">{{ client.name }}</h1>
+  <p class="text-on-surface-variant text-sm mt-1">
+    <span class="capitalize">{{ client.tag.value }}</span> · owned by
+    <a href="/admin/users/{{ owner.id }}" class="hover:underline">{{ owner.email }}</a>
+  </p>
+  {% if client.notes %}
+  <p class="text-sm mt-2 italic text-on-surface-variant">{{ client.notes }}</p>
+  {% endif %}
+</div>
+
+<h2 class="font-serif text-xl mb-3">Looks</h2>
+{% if looks %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {% for look in looks %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-xs text-on-surface-variant mb-2">{{ look.created_at | fmt_datetime }}</p>
+    <p class="text-sm font-mono break-all text-on-surface-variant mb-2">{{ look.source_photo_url }}</p>
+    <pre class="text-xs bg-surface-container rounded p-2 overflow-x-auto">{{ look.layers }}</pre>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-on-surface-variant text-sm">No looks saved yet.</p>
+{% endif %}
+{% endblock %}

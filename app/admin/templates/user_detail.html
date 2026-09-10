@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ user.email }} · Mirror Admin{% endblock %}
+{% block content %}
+<a href="/admin/users" class="text-sm text-on-surface-variant hover:underline">← Users</a>
+<div class="mt-2 mb-8 flex items-center justify-between">
+  <div>
+    <h1 class="font-serif text-3xl">{{ user.email }}</h1>
+    <p class="text-on-surface-variant text-sm mt-1">
+      <span class="capitalize">{{ user.account_type.value }}</span> · joined {{ user.created_at | fmt_datetime }}
+    </p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+    <h2 class="eyebrow uppercase text-xs text-on-surface-variant mb-3">Subscription</h2>
+    {% if subscription %}
+    <p class="font-serif text-xl capitalize">{{ subscription.plan.value }} · {{ subscription.status.value }}</p>
+    <p class="text-sm text-on-surface-variant mt-1">Renews: {{ subscription.renews_at | fmt_datetime }}</p>
+    {% if subscription.paystack_subscription_code %}
+    <p class="text-xs font-mono text-on-surface-variant mt-1">{{ subscription.paystack_subscription_code }}</p>
+    {% endif %}
+    <a href="/admin/subscriptions/{{ subscription.id }}/edit" class="inline-block mt-3 text-primary text-sm hover:underline">Edit subscription →</a>
+    {% else %}
+    <p class="text-on-surface-variant text-sm">No subscription on file.</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+    <h2 class="eyebrow uppercase text-xs text-on-surface-variant mb-3">Render Usage</h2>
+    {% if usage_rows %}
+    <table class="w-full text-sm">
+      {% for u in usage_rows[:6] %}
+      <tr class="border-t border-outline-variant first:border-t-0">
+        <td class="py-1.5">{{ u.billing_period }}</td>
+        <td class="py-1.5 text-right font-mono">{{ u.render_count }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p class="text-on-surface-variant text-sm">No render usage recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mb-10">
+  <h2 class="font-serif text-xl mb-3">Recent Enhance Jobs</h2>
+  {% if recent_jobs %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-surface-container text-xs eyebrow uppercase text-on-surface-variant">
+        <tr><th class="px-4 py-2.5">Status</th><th class="px-4 py-2.5">Created</th><th class="px-4 py-2.5">Completed</th></tr>
+      </thead>
+      <tbody>
+        {% for job in recent_jobs %}
+        <tr class="border-t border-outline-variant">
+          <td class="px-4 py-2 capitalize">{{ job.status.value }}</td>
+          <td class="px-4 py-2 text-on-surface-variant">{{ job.created_at | fmt_datetime }}</td>
+          <td class="px-4 py-2 text-on-surface-variant">{{ job.completed_at | fmt_datetime }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-on-surface-variant text-sm">No enhance jobs yet.</p>
+  {% endif %}
+</div>
+
+<div>
+  <h2 class="font-serif text-xl mb-3">Client Profiles</h2>
+  {% if clients %}
+  <ul class="flex flex-col gap-2">
+    {% for c in clients %}
+    <li>
+      <a href="/admin/clients/{{ c.id }}" class="text-primary hover:underline">{{ c.name }}</a>
+      <span class="text-on-surface-variant text-xs uppercase eyebrow ml-1">{{ c.tag.value }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-on-surface-variant text-sm">No client profiles yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

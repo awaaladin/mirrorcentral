@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Mirror Admin{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="text-3xl mb-2">◐</div>
+      <h1 class="font-serif italic text-2xl lowercase">mirror admin</h1>
+      <p class="text-on-surface-variant text-xs mt-1 eyebrow uppercase tracking-widest">Studio Control Console</p>
+    </div>
+    <form method="post" action="/admin/login" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="next_path" value="{{ next_path }}">
+      <div>
+        <label class="eyebrow uppercase text-xs text-on-surface-variant block mb-1">Email</label>
+        <input type="email" name="email" required autofocus autocomplete="username"
+               class="w-full border border-outline-variant rounded px-3 py-2 bg-white focus:outline-none focus:border-on-surface">
+      </div>
+      <div>
+        <label class="eyebrow uppercase text-xs text-on-surface-variant block mb-1">Password</label>
+        <input type="password" name="password" required autocomplete="current-password"
+               class="w-full border border-outline-variant rounded px-3 py-2 bg-white focus:outline-none focus:border-on-surface">
+      </div>
+      <button type="submit" class="bg-primary-container text-on-primary-container rounded py-2.5 font-medium uppercase text-xs tracking-widest hover:bg-primary transition-colors">
+        Sign in
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

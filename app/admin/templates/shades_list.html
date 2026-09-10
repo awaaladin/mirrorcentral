@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Shade Library · Mirror Admin{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="font-serif text-3xl">Shade Library</h1>
+  {% if admin.role.value != 'viewer' %}
+  <a href="/admin/shades/new" class="bg-primary-container text-on-primary-container rounded px-4 py-2 text-xs eyebrow uppercase tracking-widest hover:bg-primary">+ New Shade</a>
+  {% endif %}
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <table class="w-full text-left">
+    <thead class="bg-surface-container text-xs eyebrow uppercase text-on-surface-variant">
+      <tr>
+        <th class="px-4 py-2.5">Swatch</th>
+        <th class="px-4 py-2.5">Name</th>
+        <th class="px-4 py-2.5">Category</th>
+        <th class="px-4 py-2.5">Finish</th>
+        <th class="px-4 py-2.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for shade in shades %}
+      <tr class="border-t border-outline-variant hover:bg-surface-container-low">
+        <td class="px-4 py-2.5"><span class="inline-block w-6 h-6 rounded-full border border-outline-variant" style="background:{{ shade.hex_color }}"></span></td>
+        <td class="px-4 py-2.5">{{ shade.name }}</td>
+        <td class="px-4 py-2.5 capitalize">{{ shade.category.value }}</td>
+        <td class="px-4 py-2.5 capitalize">{{ shade.finish.value }}</td>
+        <td class="px-4 py-2.5">
+          {% if admin.role.value != 'viewer' %}
+          <a href="/admin/shades/{{ shade.id }}/edit" class="text-primary hover:underline text-sm">Edit</a>
+          <form method="post" action="/admin/shades/{{ shade.id }}/delete" class="inline" onsubmit="return confirm('Delete this shade?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="text-error hover:underline text-sm ml-3" type="submit">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">No shades yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

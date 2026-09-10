@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Mirror Admin{% endblock %}
+{% block content %}
+<div class="mb-8">
+  <p class="eyebrow uppercase text-xs text-primary tracking-widest mb-1">Studio Overview</p>
+  <h1 class="font-serif text-3xl">Dashboard</h1>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="eyebrow uppercase text-xs text-on-surface-variant mb-1">Total Users</p>
+    <p class="font-serif text-3xl">{{ total_users }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="eyebrow uppercase text-xs text-on-surface-variant mb-1">Active · Solo</p>
+    <p class="font-serif text-3xl">{{ plan_counts.get('solo', 0) }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="eyebrow uppercase text-xs text-on-surface-variant mb-1">Active · Studio</p>
+    <p class="font-serif text-3xl">{{ plan_counts.get('studio', 0) }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="eyebrow uppercase text-xs text-on-surface-variant mb-1">Jobs Today</p>
+    <p class="font-serif text-3xl">{{ jobs_today }}</p>
+  </div>
+</div>
+
+{% if failed_jobs > 0 %}
+<div class="mb-8 px-4 py-3 rounded border border-error bg-error-container text-error text-sm flex items-center justify-between">
+  <span>{{ failed_jobs }} enhance job{{ 's' if failed_jobs != 1 else '' }} currently in a failed state.</span>
+  <a href="/admin/enhance-jobs?status=failed" class="underline font-medium">Review</a>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-3">
+  <h2 class="font-serif text-xl">Near Monthly Cap · {{ period }}</h2>
+</div>
+{% if near_cap %}
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <table class="w-full text-left">
+    <thead class="bg-surface-container text-xs eyebrow uppercase text-on-surface-variant">
+      <tr>
+        <th class="px-4 py-2.5">User</th>
+        <th class="px-4 py-2.5">Renders Used</th>
+        <th class="px-4 py-2.5">Cap</th>
+        <th class="px-4 py-2.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for usage, cap in near_cap %}
+      <tr class="border-t border-outline-variant">
+        <td class="px-4 py-2.5 font-mono text-xs">{{ usage.user_id }}</td>
+        <td class="px-4 py-2.5">{{ usage.render_count }} ({{ (usage.render_count / cap * 100) | round(0, 'floor') | int }}%)</td>
+        <td class="px-4 py-2.5">{{ cap }}</td>
+        <td class="px-4 py-2.5"><a href="/admin/users/{{ usage.user_id }}" class="text-primary hover:underline">View →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-on-surface-variant text-sm">No users are close to their monthly render cap this period.</p>
+{% endif %}
+{% endblock %}

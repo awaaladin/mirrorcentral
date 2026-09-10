@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 30
 
+    # Signs the admin console's session cookie. Falls back to jwt_secret if unset so
+    # local dev needs one less env var, but production should set its own distinct
+    # value (a leaked mobile-API secret then can't also forge admin sessions).
+    admin_session_secret: str | None = None
+
     r2_account_id: str = ""
     r2_access_key: str = ""
     r2_secret_key: str = ""
@@ -76,6 +81,11 @@ class Settings(BaseSettings):
         if sslmode in ("require", "verify-ca", "verify-full"):
             return {"ssl": True}
         return {}
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def admin_session_secret_effective(self) -> str:
+        return self.admin_session_secret or self.jwt_secret
 
     def plan_monthly_cap(self, plan: str) -> int:
         caps = {"solo": self.solo_plan_monthly_cap, "studio": self.studio_plan_monthly_cap}

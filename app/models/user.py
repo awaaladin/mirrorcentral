@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
@@ -21,6 +21,6 @@ class User(SQLModel, table=True):
         sa_column=Column(pg_enum(AccountType, "account_type"), nullable=False),
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )

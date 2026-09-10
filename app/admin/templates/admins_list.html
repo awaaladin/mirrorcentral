@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Admin Accounts · Mirror Admin{% endblock %}
+{% block content %}
+<h1 class="font-serif text-3xl mb-6">Admin Accounts</h1>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden mb-8">
+  <table class="w-full text-left">
+    <thead class="bg-surface-container text-xs eyebrow uppercase text-on-surface-variant">
+      <tr>
+        <th class="px-4 py-2.5">Email</th>
+        <th class="px-4 py-2.5">Role</th>
+        <th class="px-4 py-2.5">Status</th>
+        <th class="px-4 py-2.5">Last Login</th>
+        <th class="px-4 py-2.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in admins %}
+      <tr class="border-t border-outline-variant">
+        <td class="px-4 py-2.5">{{ a.email }}</td>
+        <td class="px-4 py-2.5 capitalize">{{ a.role.value }}</td>
+        <td class="px-4 py-2.5">{{ 'Active' if a.is_active else 'Inactive' }}</td>
+        <td class="px-4 py-2.5 text-on-surface-variant">{{ a.last_login_at | fmt_datetime }}</td>
+        <td class="px-4 py-2.5">
+          {% if a.id != admin.id %}
+          <form method="post" action="/admin/admins/{{ a.id }}/toggle-active">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="text-primary hover:underline text-sm" type="submit">{{ 'Deactivate' if a.is_active else 'Activate' }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="font-serif text-xl mb-3">Create Admin Account</h2>
+<form method="post" action="/admin/admins"
+      class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 max-w-md flex flex-col gap-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div>
+    <label class="eyebrow uppercase text-xs text-on-surface-variant block mb-1">Email</label>
+    <input type="email" name="email" required class="w-full border border-outline-variant rounded px-3 py-2 bg-white">
+  </div>
+  <div>
+    <label class="eyebrow uppercase text-xs text-on-surface-variant block mb-1">Temporary Password</label>
+    <input type="password" name="password" required minlength="8" class="w-full border border-outline-variant rounded px-3 py-2 bg-white">
+  </div>
+  <div>
+    <label class="eyebrow uppercase text-xs text-on-surface-variant block mb-1">Role</label>
+    <select name="role" class="w-full border border-outline-variant rounded px-3 py-2 bg-white">
+      {% for r in roles %}
+      <option value="{{ r.value }}">{{ r.value }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="bg-primary-container text-on-primary-container rounded py-2.5 font-medium uppercase text-xs tracking-widest hover:bg-primary transition-colors">
+    Create account
+  </button>
+</form>
+{% endblock %}

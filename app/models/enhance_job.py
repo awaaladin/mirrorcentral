@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
@@ -22,7 +22,7 @@ class EnhanceJob(SQLModel, table=True):
     )
     result_url: str | None = Field(default=None)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
     completed_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))

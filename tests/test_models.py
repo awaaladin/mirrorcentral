@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import create_engine
 
 from app.db.base import metadata
 
@@ -16,4 +16,6 @@ def test_all_models_create_tables_cleanly() -> None:
         "subscriptions",
         "enhance_usages",
         "enhance_jobs",
+        "admin_users",
+        "admin_audit_logs",
     }

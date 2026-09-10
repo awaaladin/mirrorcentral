@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Audit Log · Mirror Admin{% endblock %}
+{% block content %}
+<h1 class="font-serif text-3xl mb-6">Audit Log</h1>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <table class="w-full text-left">
+    <thead class="bg-surface-container text-xs eyebrow uppercase text-on-surface-variant">
+      <tr>
+        <th class="px-4 py-2.5">When</th>
+        <th class="px-4 py-2.5">Admin</th>
+        <th class="px-4 py-2.5">Action</th>
+        <th class="px-4 py-2.5">Target</th>
+        <th class="px-4 py-2.5">Detail</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log, admin_user in rows %}
+      <tr class="border-t border-outline-variant align-top">
+        <td class="px-4 py-2.5 text-on-surface-variant whitespace-nowrap">{{ log.created_at | fmt_datetime }}</td>
+        <td class="px-4 py-2.5">{{ admin_user.email }}</td>
+        <td class="px-4 py-2.5 font-mono text-xs">{{ log.action }}</td>
+        <td class="px-4 py-2.5 font-mono text-xs">{{ log.target_type }}:{{ log.target_id }}</td>
+        <td class="px-4 py-2.5"><pre class="text-xs bg-surface-container rounded p-2 overflow-x-auto max-w-xs">{{ log.detail }}</pre></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-on-surface-variant">No admin actions recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

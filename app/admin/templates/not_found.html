@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Not found · Mirror Admin{% endblock %}
+{% block content %}
+<div class="py-16 text-center">
+  <p class="eyebrow uppercase text-xs text-on-surface-variant mb-2">404</p>
+  <h1 class="font-serif text-2xl mb-4">{{ kind }} not found</h1>
+  <a href="/admin/" class="text-primary hover:underline text-sm">Back to dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Mirror Admin{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#994422',
+        'primary-container': '#b85c38',
+        'on-primary-container': '#ffffff',
+        secondary: '#7b5804',
+        'secondary-container': '#fecd74',
+        tertiary: '#00686d',
+        surface: '#fff8f4',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#fbf2eb',
+        'surface-container': '#f6ece5',
+        'surface-container-high': '#f0e6e0',
+        'on-surface': '#1f1b17',
+        'on-surface-variant': '#55433c',
+        'inverse-surface': '#211d19',
+        'inverse-on-surface': '#f9efe8',
+        outline: '#88726b',
+        'outline-variant': '#dbc1b8',
+        error: '#ba1a1a',
+        'error-container': '#ffdad6',
+      },
+      fontFamily: {
+        serif: ['Newsreader', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+        mono: ['"Space Mono"', 'monospace'],
+      },
+    },
+  },
+};
+</script>
+<style>
+  body { -webkit-font-smoothing: antialiased; }
+  .eyebrow { font-family: 'Space Mono', monospace; letter-spacing: 0.14em; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-sans text-sm min-h-screen flex">
+
+{% if admin %}
+<aside class="w-56 shrink-0 bg-inverse-surface text-inverse-on-surface min-h-screen flex flex-col">
+  <div class="h-16 flex items-center gap-2 px-5 border-b border-white/10">
+    <span class="text-2xl">◐</span>
+    <span class="font-serif italic text-lg lowercase tracking-tight">mirror admin</span>
+  </div>
+  <nav class="flex-1 py-4 flex flex-col gap-1 px-3">
+    {% set nav_items = [
+      ('/admin/', 'Dashboard', 'dashboard'),
+      ('/admin/users', 'Users', 'users'),
+      ('/admin/subscriptions', 'Subscriptions', 'subscriptions'),
+      ('/admin/enhance-jobs', 'Enhance Jobs', 'enhance_jobs'),
+      ('/admin/shades', 'Shade Library', 'shades'),
+      ('/admin/clients', 'Clients & Looks', 'clients'),
+      ('/admin/audit-log', 'Audit Log', 'audit_log'),
+    ] %}
+    {% for href, label, key in nav_items %}
+    <a href="{{ href }}"
+       class="px-3 py-2 rounded text-xs uppercase tracking-wider font-medium transition-colors
+              {% if active == key %}bg-white/10 text-white{% else %}text-inverse-on-surface/70 hover:bg-white/5 hover:text-white{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+    {% if admin.role.value == 'owner' %}
+    <a href="/admin/admins"
+       class="px-3 py-2 rounded text-xs uppercase tracking-wider font-medium transition-colors
+              {% if active == 'admins' %}bg-white/10 text-white{% else %}text-inverse-on-surface/70 hover:bg-white/5 hover:text-white{% endif %}">
+      Admin Accounts
+    </a>
+    {% endif %}
+  </nav>
+  <div class="px-5 py-4 border-t border-white/10 text-xs">
+    <div class="text-inverse-on-surface">{{ admin.email }}</div>
+    <div class="eyebrow uppercase text-inverse-on-surface/50 mt-0.5">{{ admin.role.value }}</div>
+    <form method="post" action="/admin/logout" class="mt-3">
+      <button class="text-primary-container hover:underline" type="submit">Sign out</button>
+    </form>
+  </div>
+</aside>
+{% endif %}
+
+<main class="flex-1 min-w-0">
+  <div class="max-w-6xl mx-auto px-8 py-8">
+    {% with messages = flashes %}
+      {% if messages %}
+      <div class="mb-6 flex flex-col gap-2">
+        {% for kind, text in messages %}
+        <div class="px-4 py-2.5 rounded border text-sm
+                    {% if kind == 'error' %}bg-error-container border-error text-error{% else %}bg-surface-container-high border-outline-variant text-on-surface{% endif %}">
+          {{ text }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+</body>
+</html>
