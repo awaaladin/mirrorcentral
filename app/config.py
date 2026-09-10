@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any, Literal
 
-from pydantic import computed_field
+from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -54,6 +54,23 @@ class Settings(BaseSettings):
     solo_plan_monthly_cap: int = 100
     studio_plan_monthly_cap: int = 400
 
+    @model_validator(mode="before")
+    @classmethod
+    def _blank_env_vars_use_defaults(cls, data: Any) -> Any:
+        """Treat an empty-string env var as unset so the field's default applies.
+
+        Platforms like Vercel can leave a variable defined but empty for a given
+        environment; pydantic-settings only falls back to the default when the
+        key is absent entirely, so a blank value would otherwise fail typed
+        fields (int, Literal) instead of using the default.
+        """
+        if not isinstance(data, dict):
+            return data
+        for name, field in cls.model_fields.items():
+            if name in data and data[name] == "" and not field.is_required():
+                del data[name]
+        return data
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def database_url_async(self) -> str:
@@ -76,11 +93,23 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def database_connect_args(self) -> dict[str, Any]:
-        """Extra connect args for the async engine (translated from `sslmode`, if present)."""
-        sslmode = make_url(self.database_url).query.get("sslmode")
+        """Extra connect args for the async engine (translated from `sslmode`, if present).
+
+        Supabase's "Transaction" pooler (port 6543) is pgbouncer in transaction mode,
+        which doesn't support asyncpg's server-side prepared statements -- a connection
+        can be handed to a different query between statements, so a statement prepared
+        on one backend may not exist on the next. `statement_cache_size=0` disables
+        asyncpg's prepared-statement cache so every query runs as a plain (unprepared)
+        query instead.
+        """
+        url = make_url(self.database_url)
+        connect_args: dict[str, Any] = {}
+        sslmode = url.query.get("sslmode")
         if sslmode in ("require", "verify-ca", "verify-full"):
-            return {"ssl": True}
-        return {}
+            connect_args["ssl"] = True
+        if url.port == 6543:
+            connect_args["statement_cache_size"] = 0
+        return connect_args
 
     @computed_field  # type: ignore[prop-decorator]
     @property
