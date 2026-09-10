@@ -56,19 +56,29 @@ class Settings(BaseSettings):
 
     @model_validator(mode="before")
     @classmethod
-    def _blank_env_vars_use_defaults(cls, data: Any) -> Any:
-        """Treat an empty-string env var as unset so the field's default applies.
+    def _normalize_env_vars(cls, data: Any) -> Any:
+        """Clean up raw env var strings before pydantic type-validates them.
 
-        Platforms like Vercel can leave a variable defined but empty for a given
-        environment; pydantic-settings only falls back to the default when the
-        key is absent entirely, so a blank value would otherwise fail typed
-        fields (int, Literal) instead of using the default.
+        Dashboard env var UIs (Vercel included) make it easy to paste a value with
+        stray leading/trailing whitespace or surrounding quotes -- e.g. pasting the
+        `KEY="value"` line from a .env file into a form that only expects `value`.
+        Strip that noise, then treat a now-empty string as unset so the field's
+        default applies (pydantic-settings only falls back to the default when the
+        key is absent entirely, so a blank value would otherwise fail typed fields
+        like int/Literal instead of using the default).
         """
         if not isinstance(data, dict):
             return data
         for name, field in cls.model_fields.items():
-            if name in data and data[name] == "" and not field.is_required():
+            if name not in data or not isinstance(data[name], str):
+                continue
+            value = data[name].strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1].strip()
+            if value == "" and not field.is_required():
                 del data[name]
+            else:
+                data[name] = value
         return data
 
     @computed_field  # type: ignore[prop-decorator]
