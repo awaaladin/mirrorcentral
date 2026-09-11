@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 import re
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.security import hash_password
-from app.db.base import metadata
-from app.db.session import get_session
-from app.main import app
 from app.models.admin_user import AdminUser
 from app.models.client_profile import ClientProfile
 from app.models.enhance_job import EnhanceJob
@@ -32,43 +28,13 @@ from app.models.user import User
 CSRF_RE = re.compile(r'name="csrf_token" value="([^"]+)"')
 
 
-@pytest.fixture
-def test_engine():
-    engine = create_async_engine("sqlite+aiosqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    return engine
-
-
-@pytest.fixture
-def session_factory(test_engine) -> async_sessionmaker[AsyncSession]:
-    return async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
-
-
 @pytest.fixture(autouse=True)
-async def _setup_db(test_engine, session_factory: async_sessionmaker[AsyncSession]) -> AsyncGenerator[None, None]:
-    async with test_engine.begin() as conn:
-        await conn.run_sync(metadata.create_all)
-
-    async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
-        async with session_factory() as session:
-            yield session
-
-    app.dependency_overrides[get_session] = override_get_session
-
+async def _seed_admins(session_factory: async_sessionmaker[AsyncSession]) -> AsyncGenerator[None, None]:
     async with session_factory() as session:
         session.add(AdminUser(email="owner@mirror.app", password_hash=hash_password("owner-pass-123"), role=AdminRole.OWNER))
         session.add(AdminUser(email="viewer@mirror.app", password_hash=hash_password("viewer-pass-123"), role=AdminRole.VIEWER))
         await session.commit()
-
     yield
-
-    app.dependency_overrides.clear()
-    await test_engine.dispose()
-
-
-@pytest.fixture
-def client() -> Generator[TestClient, None, None]:
-    with TestClient(app) as c:
-        yield c
 
 
 def _login(client: TestClient, email: str, password: str) -> None:

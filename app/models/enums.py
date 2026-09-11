@@ -52,3 +52,25 @@ class AdminRole(StrEnum):
     OWNER = "owner"
     SUPPORT = "support"
     VIEWER = "viewer"
+
+
+class EyebrowStyle(StrEnum):
+    NATURAL_FILL = "natural_fill"
+    SOFT_ARCH = "soft_arch"
+    BOLD_DEFINED = "bold_defined"
+    STRAIGHT = "straight"
+
+
+class LashStyle(StrEnum):
+    NATURAL = "natural"
+    WISPY = "wispy"
+    DRAMATIC = "dramatic"
+    DOLL_EYE = "doll_eye"
+
+
+class GeleStyle(StrEnum):
+    AUTO_GELE = "auto_gele"
+    IPELE = "ipele"
+    SIMPLE_WRAP = "simple_wrap"
+    WIG_STRAIGHT = "wig_straight"
+    WIG_CURLY = "wig_curly"
