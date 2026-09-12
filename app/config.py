@@ -115,7 +115,15 @@ class Settings(BaseSettings):
         url = make_url(self.database_url)
         connect_args: dict[str, Any] = {}
         sslmode = url.query.get("sslmode")
-        if sslmode in ("require", "verify-ca", "verify-full"):
+        if sslmode == "require":
+            # "require" (per libpq's own definition) means encrypt but don't verify the
+            # certificate chain - asyncpg accepts this libpq-style string directly. Using
+            # `ssl=True` here instead would force full CA verification, which fails
+            # against Supabase's pooler cert with a self-signed-in-chain error even
+            # though the connection itself is fine; verify-ca/verify-full below are the
+            # sslmode values that actually ask for that stronger guarantee.
+            connect_args["ssl"] = "require"
+        elif sslmode in ("verify-ca", "verify-full"):
             connect_args["ssl"] = True
         if url.port == 6543:
             connect_args["statement_cache_size"] = 0
