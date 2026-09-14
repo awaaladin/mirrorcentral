@@ -17,6 +17,8 @@ class ShadeCategory(StrEnum):
     POWDER = "powder"
     EYESHADOW = "eyeshadow"
     BLUSH = "blush"
+    EYEBROW = "eyebrow"
+    GELE = "gele"
 
 
 class ShadeFinish(StrEnum):
