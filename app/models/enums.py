@@ -19,6 +19,7 @@ class ShadeCategory(StrEnum):
     BLUSH = "blush"
     EYEBROW = "eyebrow"
     GELE = "gele"
+    EYELINER = "eyeliner"
 
 
 class ShadeFinish(StrEnum):
