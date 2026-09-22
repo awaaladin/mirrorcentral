@@ -11,3 +11,12 @@ dist/
 build/
 .coverage
 htmlcov/
+
+# landing/ is its own React (TanStack Start) codebase with its own build tooling
+landing/node_modules/
+landing/dist/
+landing/.output/
+landing/.vinxi/
+landing/.tanstack/
+landing/.nitro/
+landing/.wrangler/
