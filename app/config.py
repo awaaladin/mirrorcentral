@@ -57,7 +57,10 @@ class Settings(BaseSettings):
     # Comma-separated list of origins allowed to call this API from a browser (the
     # landing page in `landing/`, and its local dev server). The mobile app itself
     # isn't a browser origin and doesn't need CORS.
-    cors_allowed_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8080"
+    cors_allowed_origins: str = (
+        "http://localhost:3000,http://localhost:5173,http://localhost:8080,"
+        "https://mirror-eight-topaz.vercel.app"
+    )
 
     @computed_field  # type: ignore[prop-decorator]
     @property
