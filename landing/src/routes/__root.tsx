@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { PoweredBy } from "@/components/mirror-shell";
 
 function NotFoundComponent() {
   return (
@@ -29,6 +30,7 @@ function NotFoundComponent() {
             Go home
           </Link>
         </div>
+        <div className="mt-16"><PoweredBy /></div>
       </div>
     </div>
   );
