@@ -22,6 +22,9 @@ export const people: Person[] = [
   { slug: "joy-richman", name: "Joy Richman", role: "CEO", group: "students" },
   { slug: "leanonjah", name: "Leanonjah", role: "VP Production", group: "students" },
   { slug: "goodness", name: "Goodness", role: "VP Finance", group: "students" },
+  // A fourth founding student, VP Human Resources, is still pending a name - add them here
+  // (group: "students") once it's in, with a photo saved as src/assets/people/<their-slug>.png.
+  { slug: "emediong", name: "Emediong", role: "Research Lead", group: "team" },
 ];
 
 const photoModules = import.meta.glob("/src/assets/people/*.{jpg,jpeg,png,webp}", {
