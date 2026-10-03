@@ -1,7 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Menu, X, Download, ShieldAlert } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+
+// mirrorcentral's own deployed URL, not this landing deployment's own origin - the landing page
+// and backend are separate Vercel projects joined by a domain split (see vercel.json in the
+// mirrorcentral repo root), so this has to be absolute.
+const BACKEND_URL = "https://mirrorcentral.vercel.app";
+
+type AppVersion = {
+  version_name: string;
+  download_url: string;
+  release_notes: string;
+};
 
 export function MirrorMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -68,15 +79,57 @@ export function SiteHeader() {
   );
 }
 
+/**
+ * mirror isn't distributed through the Play Store or App Store - it's a direct .apk download,
+ * since there's no store review step to wait on for an MVP. Fetches the current release from
+ * mirrorcentral's /app/version so this never links to a stale build, and includes the "Chrome
+ * blocked this download" troubleshooting steps inline, since that's the single most common
+ * reason a direct-APK download fails on Android.
+ */
 export function StoreBadges() {
+  const [release, setRelease] = useState<AppVersion | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BACKEND_URL}/app/version?platform=android`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((data: AppVersion) => { if (!cancelled) setRelease(data); })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
-    <div id="download" className="flex flex-wrap gap-3">
-      <a href="https://www.apple.com/app-store/" target="_blank" rel="noreferrer" className="store-badge" aria-label="Download on the App Store">
-        <span className="text-lg">●</span><span><small>Download on the</small>App Store</span>
-      </a>
-      <a href="https://play.google.com/store" target="_blank" rel="noreferrer" className="store-badge" aria-label="Get it on Google Play">
-        <span className="text-lg">▶</span><span><small>Get it on</small>Google Play</span>
-      </a>
+    <div id="download" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        {release ? (
+          <a href={release.download_url} className="store-badge" aria-label={`Download mirror ${release.version_name} for Android`}>
+            <Download className="size-5" />
+            <span><small>Download for Android</small>v{release.version_name}</span>
+          </a>
+        ) : (
+          <span className="store-badge pointer-events-none opacity-60" aria-live="polite">
+            <Download className="size-5" />
+            <span><small>Download for Android</small>{failed ? "Not available yet" : "Checking…"}</span>
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowHelp((value) => !value)}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          <ShieldAlert className="size-3.5" /> Download blocked or won't install?
+        </button>
+      </div>
+      {showHelp && (
+        <div className="max-w-md rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
+          <p className="font-medium text-foreground">If your browser blocks the download:</p>
+          <p className="mt-1">Chrome and some other browsers flag direct .apk downloads by default. Try again, or switch to another browser (Firefox and Samsung Internet usually allow it).</p>
+          <p className="mt-3 font-medium text-foreground">If Android won't install it:</p>
+          <p className="mt-1">Go to <strong>Settings → Apps → [your browser] → Install unknown apps</strong> and turn it on for that app, then open the downloaded file again. Once mirror is installed, turn that setting back off — it's safest left disabled when you're not actively installing something.</p>
+        </div>
+      )}
     </div>
   );
 }

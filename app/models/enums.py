@@ -77,3 +77,8 @@ class GeleStyle(StrEnum):
     SIMPLE_WRAP = "simple_wrap"
     WIG_STRAIGHT = "wig_straight"
     WIG_CURLY = "wig_curly"
+
+
+class AppPlatform(StrEnum):
+    ANDROID = "android"
+    IOS = "ios"

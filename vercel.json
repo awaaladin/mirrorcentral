@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!admin|auth|clients|shades|health|docs|redoc|openapi.json).*)",
+      "source": "/((?!admin|auth|clients|shades|health|devices|app|docs|redoc|openapi.json).*)",
       "destination": "https://mirror-eight-topaz.vercel.app/$1"
     }
   ]

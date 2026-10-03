@@ -49,6 +49,14 @@ class Settings(BaseSettings):
 
     paystack_secret_key: str = ""
 
+    # Firebase Admin SDK credential (see app/services/push.py) - either works, checked in this
+    # order. _PATH is for local dev (points at a file on disk, outside git). _JSON is for Vercel
+    # (a serverless function can't read a file that isn't in the deployed repo, so the whole
+    # service account JSON is pasted as the env var's value instead). Unset entirely in any
+    # environment without push configured - it just no-ops rather than failing.
+    firebase_service_account_path: str = ""
+    firebase_service_account_json: str = ""
+
     enhance_provider: Literal["local", "hosted"] = "local"
 
     solo_plan_monthly_cap: int = 100

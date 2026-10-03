@@ -12,6 +12,9 @@ build/
 .coverage
 htmlcov/
 
+# Firebase Admin SDK service account key - never commit, grants full push-send access.
+secrets/
+
 # landing/ is its own React (TanStack Start) codebase with its own build tooling
 landing/node_modules/
 landing/dist/
