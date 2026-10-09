@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
-import firebase_admin
-from firebase_admin import credentials, messaging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,26 +13,45 @@ from app.models.device_token import DeviceToken
 
 logger = logging.getLogger(__name__)
 
-_firebase_app: firebase_admin.App | None = None
+_firebase_app: Any = None
+_firebase_app_initialized = False
 
 
-def _get_firebase_app() -> firebase_admin.App | None:
+def _get_firebase_app() -> Any | None:
     """Lazily initializes the Firebase Admin SDK from the service account file configured via
-    FIREBASE_SERVICE_ACCOUNT_PATH. Returns None (rather than raising) when unconfigured, so local
-    dev and any environment without push notifications set up doesn't need a dummy credential."""
-    global _firebase_app
-    if _firebase_app is not None:
+    FIREBASE_SERVICE_ACCOUNT_PATH/_JSON. Returns None (rather than raising) when unconfigured OR
+    when the firebase-admin package itself fails to import/initialize - a serverless deployment's
+    dependency bundle is a different environment than local dev, and push notifications being
+    unavailable should never take the rest of the API down with it. The import is deliberately
+    inside this function (not at module level): this module gets imported at app startup via the
+    admin releases router, so a module-level import failure here would crash every request, not
+    just release-publishing ones.
+    """
+    global _firebase_app, _firebase_app_initialized
+    if _firebase_app_initialized:
         return _firebase_app
+    _firebase_app_initialized = True
 
-    settings = get_settings()
-    if settings.firebase_service_account_json:
-        cred = credentials.Certificate(json.loads(settings.firebase_service_account_json))
-    elif settings.firebase_service_account_path:
-        cred = credentials.Certificate(settings.firebase_service_account_path)
-    else:
+    try:
+        import firebase_admin
+        from firebase_admin import credentials
+    except Exception:
+        logger.exception("firebase-admin unavailable - push notifications disabled")
         return None
 
-    _firebase_app = firebase_admin.initialize_app(cred)
+    settings = get_settings()
+    try:
+        if settings.firebase_service_account_json:
+            cred = credentials.Certificate(json.loads(settings.firebase_service_account_json))
+        elif settings.firebase_service_account_path:
+            cred = credentials.Certificate(settings.firebase_service_account_path)
+        else:
+            return None
+        _firebase_app = firebase_admin.initialize_app(cred)
+    except Exception:
+        logger.exception("Failed to initialize Firebase Admin SDK - push notifications disabled")
+        return None
+
     return _firebase_app
 
 
@@ -54,19 +72,26 @@ async def notify_new_release(session: AsyncSession, release: AppRelease) -> int:
     if not tokens:
         return 0
 
-    message = messaging.MulticastMessage(
-        notification=messaging.Notification(
-            title="Mirror update available",
-            body=f"Version {release.version_name} is ready - tap to download.",
-        ),
-        data={
-            "type": "app_update",
-            "version_code": str(release.version_code),
-            "version_name": release.version_name,
-            "download_url": release.download_url,
-        },
-        tokens=tokens,
-    )
-    response = messaging.send_each_for_multicast(message, app=app)
+    try:
+        from firebase_admin import messaging
+
+        message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title="Mirror update available",
+                body=f"Version {release.version_name} is ready - tap to download.",
+            ),
+            data={
+                "type": "app_update",
+                "version_code": str(release.version_code),
+                "version_name": release.version_name,
+                "download_url": release.download_url,
+            },
+            tokens=tokens,
+        )
+        response = messaging.send_each_for_multicast(message, app=app)
+    except Exception:
+        logger.exception("Failed to send push notification for release %s", release.version_name)
+        return 0
+
     logger.info("Push notification sent: %d succeeded, %d failed", response.success_count, response.failure_count)
     return response.success_count
