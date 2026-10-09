@@ -28,10 +28,17 @@ dependencies = [
     "pillow>=11.0,<12.0",
     "opencv-python-headless>=4.10,<5.0",
     "numpy>=2.1,<3.0",
-    "firebase-admin>=6.5,<7.0",
 ]
 
 [project.optional-dependencies]
+push = [
+    # Only needed if FIREBASE_SERVICE_ACCOUNT_PATH/_JSON is actually set - see
+    # app/services/push.py, which imports this lazily so its absence can never break the rest of
+    # the API. Deliberately NOT a hard dependency: it pulls in grpc/protobuf/google-cloud-*, and
+    # bundling it unconditionally pushed the Vercel Python function over its size limit, which
+    # broke deployment entirely (not just push notifications) - see git history around 2026-10-09.
+    "firebase-admin>=6.5,<7.0",
+]
 dev = [
     "pytest>=8.3,<9.0",
     "pytest-asyncio>=0.24,<1.0",
