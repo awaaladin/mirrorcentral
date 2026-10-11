@@ -9,7 +9,13 @@ dependencies = [
     "uvicorn[standard]>=0.32,<1.0",
     "pydantic>=2.9,<3.0",
     "pydantic-settings>=2.6,<3.0",
-    "sqlalchemy>=2.0.36,<3.0",
+    "sqlalchemy[asyncio]>=2.0.36,<3.0",
+    # greenlet also pinned explicitly (not just via sqlalchemy[asyncio]) - Vercel's build-time
+    # dependency optimizer can't see that sqlalchemy.ext.asyncio needs it (the import is inside
+    # sqlalchemy/util/concurrency.py, not a top-level import anywhere in our code) and was
+    # pruning it as "unused", which crashed every route via app/admin/deps.py's AsyncSession
+    # import - see git history around 2026-10-11.
+    "greenlet>=3.1,<4.0",
     "sqlmodel>=0.0.22,<1.0",
     "alembic>=1.14,<2.0",
     "asyncpg>=0.30,<1.0",
