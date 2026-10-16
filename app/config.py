@@ -59,7 +59,7 @@ class Settings(BaseSettings):
 
     # Showroom face analysis (app/services/showroom.py). Unset = POST /showroom/analyze answers 503.
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-3.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
 
     enhance_provider: Literal["local", "hosted"] = "local"
 

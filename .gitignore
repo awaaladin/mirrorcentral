@@ -23,3 +23,5 @@ landing/.vinxi/
 landing/.tanstack/
 landing/.nitro/
 landing/.wrangler/
+
+.vercel

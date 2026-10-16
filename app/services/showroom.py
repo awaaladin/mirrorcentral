@@ -39,7 +39,7 @@ USER_PROMPT = """Analyse this face and return JSON with:
 - photo_warnings: list of short strings for problems that would make makeup placement look off
   (e.g. "face turned sideways", "strong colour cast", "face partly covered", "low light"). Empty if fine.
 - suggestions: 2-3 items EACH for categories "foundation","lipstick","blush","eyebrow";
-  each item {category, name, hex ("#RRGGBB"), reason (max 12 words)}
+  each item {category, name (a short generic shade name like "Warm Cocoa" - never a brand or product name), hex ("#RRGGBB"), reason (max 12 words)}
 - summary: one friendly sentence (max 25 words) about the look that would suit this face."""
 
 
