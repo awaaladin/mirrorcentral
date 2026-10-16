@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     firebase_service_account_path: str = ""
     firebase_service_account_json: str = ""
 
+    # Showroom face analysis (app/services/showroom.py). Unset = POST /showroom/analyze answers 503.
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-3.5-flash"
+
     enhance_provider: Literal["local", "hosted"] = "local"
 
     solo_plan_monthly_cap: int = 100
