@@ -41,6 +41,12 @@ class SubscriptionStatus(StrEnum):
     INCOMPLETE = "incomplete"
 
 
+class PaymentStatus(StrEnum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
 class EnhanceJobStatus(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"

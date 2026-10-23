@@ -18,4 +18,7 @@ def test_all_models_create_tables_cleanly() -> None:
         "enhance_jobs",
         "admin_users",
         "admin_audit_logs",
+        "app_releases",
+        "device_tokens",
+        "payments",
     }

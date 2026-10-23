@@ -47,7 +47,16 @@ class Settings(BaseSettings):
 
     replicate_api_token: str | None = None
 
+    # Paystack (shared account; Mirror's references start with MIRROR-, see app/services/billing.py).
+    # Unset = POST /billing/checkout answers 503.
     paystack_secret_key: str = ""
+    paystack_base_url: str = "https://api.paystack.co"
+    # Public URL of this API: Paystack sends the payer back to {public_base_url}/billing/return.
+    public_base_url: str = "https://mirrorcentral.vercel.app"
+    # Prepaid Pro periods, in whole naira. One payment buys plan_period_days of the plan.
+    solo_plan_price_ngn: int = 7500
+    studio_plan_price_ngn: int = 20000
+    plan_period_days: int = 30
 
     # Firebase Admin SDK credential (see app/services/push.py) - either works, checked in this
     # order. _PATH is for local dev (points at a file on disk, outside git). _JSON is for Vercel
@@ -158,6 +167,13 @@ class Settings(BaseSettings):
     @property
     def admin_session_secret_effective(self) -> str:
         return self.admin_session_secret or self.jwt_secret
+
+    def plan_price_ngn(self, plan: str) -> int:
+        prices = {"solo": self.solo_plan_price_ngn, "studio": self.studio_plan_price_ngn}
+        try:
+            return prices[plan]
+        except KeyError as exc:
+            raise ValueError(f"Unknown plan: {plan!r}") from exc
 
     def plan_monthly_cap(self, plan: str) -> int:
         caps = {"solo": self.solo_plan_monthly_cap, "studio": self.studio_plan_monthly_cap}
