@@ -48,8 +48,11 @@ class Settings(BaseSettings):
     replicate_api_token: str | None = None
 
     # Paystack (shared account; Mirror's references start with MIRROR-, see app/services/billing.py).
-    # Unset = POST /billing/checkout answers 503.
+    # Unset = POST /billing/checkout answers 503. PAYSTACK_API is accepted as an alias (see
+    # _normalize_env_vars below) - same convention as the other apps on the shared account; the
+    # real key lives under that name in the repo owner's local .env.
     paystack_secret_key: str = ""
+    paystack_api: str = ""
     paystack_base_url: str = "https://api.paystack.co"
     # Public URL of this API: Paystack sends the payer back to {public_base_url}/billing/return.
     public_base_url: str = "https://mirrorcentral.vercel.app"
@@ -103,6 +106,13 @@ class Settings(BaseSettings):
         """
         if not isinstance(data, dict):
             return data
+        # PAYSTACK_API is accepted as an alias for PAYSTACK_SECRET_KEY - same convention as the
+        # other apps on the shared Paystack account (see their settings for the identical
+        # fallback). The real key lives under that name in the repo owner's local .env.
+        if not str(data.get("paystack_secret_key", "")).strip():
+            alias = str(data.get("paystack_api", "")).strip()
+            if alias:
+                data["paystack_secret_key"] = alias
         for name, field in cls.model_fields.items():
             if name not in data or not isinstance(data[name], str):
                 continue
