@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,13 +25,28 @@ _INVALID_REFRESH_TOKEN = HTTPException(
     detail="Invalid or expired refresh token.",
 )
 
+_SIGNED_IN_ELSEWHERE_REFRESH = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="This account was signed in on another device. Please sign in again.",
+)
 
-def _issue_tokens(user: User) -> TokenResponse:
+
+def _issue_tokens(user: User, session_id: str) -> TokenResponse:
     return TokenResponse(
-        access_token=create_access_token(user.id, user.email),
-        refresh_token=create_refresh_token(user.id),
+        access_token=create_access_token(user.id, user.email, session_id),
+        refresh_token=create_refresh_token(user.id, session_id),
         user=user,
     )
+
+
+async def _start_new_session(session: AsyncSession, user: User) -> TokenResponse:
+    """Register/login: a fresh sign-in, so it replaces whatever session (if any) was active
+    before - signing that device out, per the single-active-session rule."""
+    user.current_session_id = secrets.token_hex(16)
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return _issue_tokens(user, user.current_session_id)
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -53,7 +69,7 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
     await session.commit()
     await session.refresh(user)
 
-    return _issue_tokens(user)
+    return await _start_new_session(session, user)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -69,7 +85,7 @@ async def login(request: LoginRequest, session: AsyncSession = Depends(get_sessi
             detail="Incorrect email or password.",
         )
 
-    return _issue_tokens(user)
+    return await _start_new_session(session, user)
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -87,4 +103,9 @@ async def refresh(request: RefreshRequest, session: AsyncSession = Depends(get_s
     if user is None:
         raise _INVALID_REFRESH_TOKEN
 
-    return _issue_tokens(user)
+    # Same single-active-session rule as get_current_user: a login elsewhere since this
+    # refresh token was issued means this device's session has already been signed out.
+    if claims.get("sid") != user.current_session_id:
+        raise _SIGNED_IN_ELSEWHERE_REFRESH
+
+    return _issue_tokens(user, user.current_session_id)

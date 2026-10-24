@@ -58,7 +58,11 @@ class Settings(BaseSettings):
     public_base_url: str = "https://mirrorcentral.vercel.app"
     # Prepaid Pro periods, in whole naira. One payment buys plan_period_days of the plan.
     solo_plan_price_ngn: int = 7500
-    studio_plan_price_ngn: int = 20000
+    studio_plan_price_ngn: int = 12000
+    # Studio pricing is still being reviewed - it's shown (name + price) but not purchasable
+    # yet: /billing/plans reports it as unavailable, and /billing/checkout refuses it. Flip to
+    # true once Studio is actually ready to sell.
+    studio_plan_available: bool = False
     plan_period_days: int = 30
 
     # Firebase Admin SDK credential (see app/services/push.py) - either works, checked in this
@@ -182,6 +186,13 @@ class Settings(BaseSettings):
         prices = {"solo": self.solo_plan_price_ngn, "studio": self.studio_plan_price_ngn}
         try:
             return prices[plan]
+        except KeyError as exc:
+            raise ValueError(f"Unknown plan: {plan!r}") from exc
+
+    def plan_available(self, plan: str) -> bool:
+        availability = {"solo": True, "studio": self.studio_plan_available}
+        try:
+            return availability[plan]
         except KeyError as exc:
             raise ValueError(f"Unknown plan: {plan!r}") from exc
 

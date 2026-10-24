@@ -49,6 +49,8 @@ export type PlanPublic = {
   name: string;
   price_ngn: number;
   period_days: number;
+  /** False = shown (name + price) but not purchasable yet - pricing still under review. */
+  available: boolean;
 };
 
 export type AuthUser = { id: string; email: string; account_type: "consumer" | "business" };

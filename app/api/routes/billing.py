@@ -38,6 +38,9 @@ class PlanPublic(BaseModel):
     name: str
     price_ngn: int
     period_days: int
+    # False = shown (so people know it's coming and roughly what it costs) but not
+    # purchasable yet - see Settings.studio_plan_available.
+    available: bool
 
 
 class CheckoutRequest(BaseModel):
@@ -66,7 +69,7 @@ async def list_plans() -> list[PlanPublic]:
     settings = get_settings()
     return [
         PlanPublic(plan=plan, name=plan_label(plan), price_ngn=settings.plan_price_ngn(plan.value),
-                   period_days=settings.plan_period_days)
+                   period_days=settings.plan_period_days, available=settings.plan_available(plan.value))
         for plan in SubscriptionPlan
     ]
 
@@ -80,6 +83,8 @@ async def checkout(
     """Starts a Paystack checkout for one prepaid period. The app opens authorization_url in a
     browser; Paystack sends the payer back to /billing/return when they're done."""
     settings = get_settings()
+    if not settings.plan_available(request.plan.value):
+        raise HTTPException(status.HTTP_409_CONFLICT, "This plan's pricing is still being reviewed - not available to buy yet.")
     payment = Payment(
         reference=make_reference("PRO"),
         user_id=user.id,

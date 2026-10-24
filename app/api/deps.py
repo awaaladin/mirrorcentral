@@ -36,6 +36,12 @@ _INVALID_TOKEN = HTTPException(
     headers={"WWW-Authenticate": "Bearer"},
 )
 
+_SIGNED_IN_ELSEWHERE = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="This account was signed in on another device. Please sign in again.",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
@@ -54,5 +60,11 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     if user is None:
         raise _INVALID_TOKEN
+
+    # One active sign-in per account (see User.current_session_id). A newer login elsewhere
+    # already overwrote it, so this token - however fresh - is from a session that's been
+    # signed out. No extra query: `user` is already loaded above.
+    if claims.get("sid") != user.current_session_id:
+        raise _SIGNED_IN_ELSEWHERE
 
     return user

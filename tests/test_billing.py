@@ -89,14 +89,21 @@ def test_short_payment_does_not_activate(client: TestClient) -> None:
     assert client.get("/billing/subscription", headers=headers).json()["active"] is False
 
 
-def test_verify_without_webhook(client: TestClient) -> None:
+def test_verify_without_webhook(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(get_settings(), "studio_plan_available", True)
     headers = _auth_headers(client)
     reference, _ = _checkout(client, headers, plan="studio")
-    verify = mock.AsyncMock(return_value=_charge(reference, amount_kobo=2_000_000))
+    verify = mock.AsyncMock(return_value=_charge(reference, amount_kobo=1_200_000))
     with mock.patch("app.services.paystack.verify_transaction", verify):
         response = client.post(f"/billing/verify/{reference}", headers=headers)
     assert response.json()["status"] == "success"
     assert client.get("/billing/subscription", headers=headers).json()["plan"] == "studio"
+
+
+def test_studio_checkout_refused_while_unavailable(client: TestClient) -> None:
+    # studio_plan_available defaults to False - pricing under review, not purchasable yet.
+    response = client.post("/billing/checkout", json={"plan": "studio"}, headers=_auth_headers(client))
+    assert response.status_code == 409
 
 
 def test_verify_is_owner_only(client: TestClient) -> None:
@@ -115,4 +122,5 @@ def test_return_page_confirms_payment(client: TestClient) -> None:
 
 def test_plans_are_public(client: TestClient) -> None:
     plans = client.get("/billing/plans").json()
-    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 7500, "studio": 20000}
+    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 7500, "studio": 12000}
+    assert {p["plan"]: p["available"] for p in plans} == {"solo": True, "studio": False}

@@ -16,7 +16,7 @@ ACCESS_TOKEN_TYPE = "access"
 REFRESH_TOKEN_TYPE = "refresh"
 
 
-def create_access_token(user_id: uuid.UUID, email: str) -> str:
+def create_access_token(user_id: uuid.UUID, email: str, session_id: str) -> str:
     settings = get_settings()
     expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
     claims: dict[str, Any] = {
@@ -25,14 +25,17 @@ def create_access_token(user_id: uuid.UUID, email: str) -> str:
         "type": ACCESS_TOKEN_TYPE,
         "exp": expire,
         # exp only has second-level granularity, so two tokens minted for the same user
-        # within the same second would otherwise be byte-identical; jti keeps them unique
-        # (and is a prerequisite for ever supporting revocation later).
+        # within the same second would otherwise be byte-identical; jti keeps them unique.
         "jti": str(uuid.uuid4()),
+        # Single-active-session enforcement: must match users.current_session_id (see
+        # get_current_user). A later login elsewhere overwrites that column, so this token
+        # stops being accepted - no need to wait for it to expire.
+        "sid": session_id,
     }
     return jwt.encode(claims, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def create_refresh_token(user_id: uuid.UUID) -> str:
+def create_refresh_token(user_id: uuid.UUID, session_id: str) -> str:
     settings = get_settings()
     expire = datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days)
     claims: dict[str, Any] = {
@@ -40,6 +43,7 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
         "type": REFRESH_TOKEN_TYPE,
         "exp": expire,
         "jti": str(uuid.uuid4()),
+        "sid": session_id,
     }
     return jwt.encode(claims, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
