@@ -14,6 +14,12 @@ export const Route = createFileRoute("/pricing")({ head: () => ({ meta: [
 
 const naira = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });
 
+/** The backend's plan name carries "(N days)" for Paystack's dashboard/receipts - this is
+ * display-only cleanup so the pricing page can phrase duration its own, friendlier way below. */
+function shortName(name: string): string {
+  return name.replace(/\s*\(\d+\s*days?\)\s*$/i, "");
+}
+
 const planCopy: Record<BillingPlan, { eyebrow: string; features: string[]; highlighted: boolean }> = {
   solo: {
     eyebrow: "For yourself",
@@ -62,11 +68,12 @@ function Plan({ plan, onChoose }: { plan: PlanPublic; onChoose: () => void }) {
   const copy = planCopy[plan.plan];
   return <article className={`reveal-flow flex min-h-[530px] flex-col rounded-[2.5rem] p-8 sm:p-10 ${copy.highlighted ? "bg-foreground text-background" : "border border-border bg-card"}`}>
     <p className={`text-xs font-semibold uppercase ${copy.highlighted ? "text-secondary" : "text-primary"}`}>{copy.eyebrow}</p>
-    <h2 className="mt-3 text-4xl">{plan.name}</h2>
-    <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}<span className={`ml-2 font-body text-xs uppercase ${copy.highlighted ? "text-background/50" : "text-muted-foreground"}`}>every {plan.period_days} days</span></p>
+    <h2 className="mt-3 text-4xl">{shortName(plan.name)}</h2>
+    <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}<span className={`ml-2 font-body text-xs uppercase ${copy.highlighted ? "text-background/50" : "text-muted-foreground"}`}>one-time payment</span></p>
+    <p className={`mt-2 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}>Covers {plan.period_days} days of Pro - pay again anytime to keep going</p>
     {!plan.available && <p className={`mt-2 flex items-center gap-1.5 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}><Clock className="size-3.5" /> Pricing under review - not available to buy yet</p>}
     <ul className="mt-10 flex-1 space-y-4">{copy.features.map((feature) => <li key={feature} className="flex items-center gap-3 text-sm"><span className={`grid size-7 place-items-center rounded-full ${copy.highlighted ? "bg-background/10 text-secondary" : "bg-accent text-primary"}`}><Check className="size-4" /></span>{feature}</li>)}</ul>
-    <Button variant={copy.highlighted ? "secondary" : "default"} className="mt-10 h-12 rounded-full" onClick={onChoose} disabled={!plan.available}>{plan.available ? `Choose ${plan.name}` : "Coming soon"}</Button>
+    <Button variant={copy.highlighted ? "secondary" : "default"} className="mt-10 h-12 rounded-full" onClick={onChoose} disabled={!plan.available}>{plan.available ? `Choose ${shortName(plan.name)}` : "Coming soon"}</Button>
   </article>;
 }
 
@@ -118,7 +125,7 @@ function CheckoutDialog({ plan, onClose }: { plan: PlanPublic | null; onClose: (
         <>
           <DialogHeader>
             <DialogTitle className="font-display text-4xl">{mode === "login" ? "Log in to pay" : "Create your account"}</DialogTitle>
-            <DialogDescription>{plan?.name} · {plan ? naira.format(plan.price_ngn) : ""} every {plan?.period_days} days. Use the same email you'll sign in with on the app.</DialogDescription>
+            <DialogDescription>{plan && shortName(plan.name)} · {plan ? naira.format(plan.price_ngn) : ""} one-time payment, covers {plan?.period_days} days. Use the same email you'll sign in with on the app.</DialogDescription>
           </DialogHeader>
           <form className="mt-3 space-y-4" onSubmit={submit}>
             <Input required type="email" placeholder="Email address" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 rounded-full px-5" />
