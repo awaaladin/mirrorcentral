@@ -14,17 +14,15 @@ type Step = { title: string; body: string; points: string[]; note?: string };
 const steps: Step[] = [
   {
     title: "Create your account",
-    body: "Sign up with an email and password. At sign-up you also choose the kind of account you want, and that choice decides whether Client Mode is unlocked.",
+    body: "Sign up with an email and password. Mirror is free, with saved looks, the full shade library and custom shades. Looks you share carry a small mirror watermark until you make the one-time payment.",
     points: [
-      "Personal: for your own looks. Saved looks, the full shade library and custom shades.",
-      "Pro / MUA: everything in Personal, plus the Client Mode directory for bridal and editorial clients.",
       "Right after your first sign-up, a short walkthrough appears once. You will not see it again.",
     ],
-    note: "The account type is set when you sign up. Upgrading later from inside the app is not available yet.",
+    note: "Mirror Pro is coming soon. It will add Showroom AI analysis and the Client Mode directory.",
   },
   {
     title: "Start on the Looks tab",
-    body: "Looks is your home screen, with five tabs along the bottom: Looks, Studio, Library, Clients and Settings. At the top is a Self and Client switch. Client is for Pro accounts; on a Personal account it shows a Pro badge and explains what it unlocks.",
+    body: "Looks is your home screen, with five tabs along the bottom: Looks, Studio, Library, Clients and Settings. At the top is a Self and Client switch. Client is part of Mirror Pro; until then it shows a Pro badge and explains what it unlocks.",
     points: [
       "IMPORT lets you choose a portrait from your phone. This is the button that works today.",
       "SIMULATE is the live camera mode. It is a Pro feature that is not released yet, so tapping it explains that instead of doing nothing.",
@@ -73,9 +71,9 @@ const steps: Step[] = [
     ],
   },
   {
-    title: "Work with clients (Pro / MUA)",
+    title: "Work with clients (Mirror Pro)",
     body: "The Clients tab is the Client Mode directory. Add a client with a name, notes such as undertone or wedding date, and a Self or Client tag. Search the list by name or notes, then START A LOOK IN THE STUDIO for that consultation.",
-    points: ["On a Personal account, the Client Mode Directory shows a Pro badge and explains what Pro adds."],
+    points: ["On the free app, the Client Mode Directory shows a Pro badge and explains what Pro adds."],
   },
   {
     title: "Browse the full library",
@@ -85,10 +83,10 @@ const steps: Step[] = [
 ];
 
 const soon = [
-  ["Live camera simulation", "Try makeup on the camera feed, for Pro accounts."],
+  ["Live camera simulation", "Try makeup on the camera feed, with Mirror Pro."],
   ["Background clean-up and relighting", "Remove the background from a saved look and light it like a studio portrait."],
   ["Gele and head-wrap preview", "Built, but held back until it looks right."],
-  ["Upgrade from inside the app", "Move from Personal to Pro without creating a new account."],
+  ["Mirror Pro", "Showroom AI analysis and Client Mode, on the account you already have."],
 ];
 
 const tips = [

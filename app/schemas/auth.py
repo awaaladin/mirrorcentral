@@ -10,7 +10,6 @@ from app.models.enums import AccountType
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    account_type: AccountType = AccountType.CONSUMER
 
 
 class LoginRequest(BaseModel):

@@ -12,7 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.jwt import ACCESS_TOKEN_TYPE, decode_token
 from app.db.session import get_session
+from app.models.enums import SubscriptionPlan
 from app.models.user import User
+from app.services.entitlements import active_plan, can_use_client_mode, can_use_showroom
 
 
 class _ForbiddenOnMissingBearer(HTTPBearer):
@@ -67,4 +69,24 @@ async def get_current_user(
     if claims.get("sid") != user.current_session_id:
         raise _SIGNED_IN_ELSEWHERE
 
+    return user
+
+
+async def require_showroom(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> tuple[User, SubscriptionPlan]:
+    plan = await active_plan(session, user.id)
+    if plan is None or not can_use_showroom(plan):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Showroom is part of Mirror Pro.")
+    return user, plan
+
+
+async def require_client_mode(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> User:
+    plan = await active_plan(session, user.id)
+    if plan is None or not can_use_client_mode(plan):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Client Mode is part of Mirror Pro.")
     return user

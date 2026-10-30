@@ -1,6 +1,20 @@
 from __future__ import annotations
 
+from collections.abc import Generator
+
+import pytest
 from fastapi.testclient import TestClient
+
+from app.api.deps import get_current_user, require_client_mode
+from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def _studio_access() -> Generator[None, None, None]:
+    """Who may use these routes is tested in test_entitlements.py; here every user has Studio."""
+    app.dependency_overrides[require_client_mode] = get_current_user
+    yield
+    app.dependency_overrides.pop(require_client_mode, None)
 
 
 def _auth_headers(client: TestClient, email: str = "artist@example.com") -> dict[str, str]:

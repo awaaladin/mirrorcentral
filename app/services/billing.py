@@ -1,14 +1,15 @@
-"""Prepaid Pro through Paystack.
+"""Payments through Paystack.
 
 One Paystack account serves several apps, so every Mirror reference starts with the app code and
 every transaction carries the same metadata keys. That lets the dashboard, exports and the
 webhook router tell Mirror's payments apart from the other apps':
 
-    MIRROR-PRO-20261023-4F9A2C7B1E0D    one prepaid period of a Pro plan (solo or studio)
+    MIRROR-UNLOCK-20261023-4F9A2C7B1E0D  the one-time payment
+    MIRROR-PRO-20261023-4F9A2C7B1E0D     one prepaid period of Pro Studio
 
-A successful payment extends the user's subscription by `plan_period_days` (from today, or from
-the current end date if they renew early) and makes the account a Pro/business account, which is
-what the Android app gates Client Mode on.
+The one-time payment (plan "solo") marks the account unlocked for good. A Studio payment extends
+the subscription by `plan_period_days` (from today, or from the current end date if they renew
+early). What each unlocks is decided in app/services/entitlements.py.
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.models.enums import AccountType, PaymentStatus, SubscriptionPlan, SubscriptionStatus
+from app.models.enums import PaymentStatus, SubscriptionPlan, SubscriptionStatus
 from app.models.payment import Payment
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -55,7 +56,17 @@ def paystack_metadata(purpose: str, description: str, **extra: object) -> dict:
     }
 
 
+def is_one_time(plan: SubscriptionPlan) -> bool:
+    return plan == SubscriptionPlan.SOLO
+
+
+def reference_purpose(plan: SubscriptionPlan) -> str:
+    return "UNLOCK" if is_one_time(plan) else "PRO"
+
+
 def plan_label(plan: SubscriptionPlan) -> str:
+    if is_one_time(plan):
+        return "Mirror Unlock"
     return f"Mirror Pro {plan.value.title()} ({get_settings().plan_period_days} days)"
 
 
@@ -93,22 +104,23 @@ async def apply_paystack_transaction(session: AsyncSession, payment: Payment, da
     payment.paid_at = now
     payment.paystack_transaction_id = str(data.get("id") or "") or None
 
-    subscription = await latest_subscription(session, payment.user_id)
-    if subscription is None:
-        subscription = Subscription(user_id=payment.user_id, plan=payment.plan)
-    current_end = aware_utc(subscription.renews_at)
-    start = current_end if current_end and current_end > now else now
-    subscription.plan = payment.plan
-    subscription.status = SubscriptionStatus.ACTIVE
-    subscription.renews_at = start + timedelta(days=get_settings().plan_period_days)
-
-    user = await session.get(User, payment.user_id)
-    if user is not None and user.account_type != AccountType.BUSINESS:
-        user.account_type = AccountType.BUSINESS
-        session.add(user)
+    if is_one_time(payment.plan):
+        user = await session.get(User, payment.user_id)
+        if user is not None and user.unlocked_at is None:
+            user.unlocked_at = now
+            session.add(user)
+    else:
+        subscription = await latest_subscription(session, payment.user_id)
+        if subscription is None:
+            subscription = Subscription(user_id=payment.user_id, plan=payment.plan)
+        current_end = aware_utc(subscription.renews_at)
+        start = current_end if current_end and current_end > now else now
+        subscription.plan = payment.plan
+        subscription.status = SubscriptionStatus.ACTIVE
+        subscription.renews_at = start + timedelta(days=get_settings().plan_period_days)
+        session.add(subscription)
 
     session.add(payment)
-    session.add(subscription)
     await session.commit()
     await session.refresh(payment)
     return payment

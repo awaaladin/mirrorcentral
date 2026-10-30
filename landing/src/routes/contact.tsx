@@ -15,9 +15,9 @@ export const Route = createFileRoute("/contact")({ head: () => ({ meta: [
 
 const faqs = [
   ["Does mirror really work offline?", "Yes. Face landmark detection, rendering and saved personal looks all run directly on your device after installation."],
-  ["What does Personal include?", "Personal is a one-time purchase for lifetime on-device simulation, personal saved looks and the certified shade library."],
+  ["Is mirror free?", "Yes. The app is free to download and use, including on-device simulation, saved looks and the certified shade library. Shared images carry a small mirror watermark; one ₦7,500 payment removes it forever, on your account."],
   ["What makes Pro different?", "Pro adds client profiles, Client Mode Directory, unlimited formulations and polished studio exports."],
-  ["Can I use mirror with client photographs?", "Yes with Pro. The app is designed around private, on-device processing so client portraits do not need to leave the device."],
+  ["Can I use mirror with client photographs?", "Yes. Client Mode, which keeps client cards and notes, is coming with Mirror Pro Studio. The app is designed around private, on-device processing so client portraits do not need to leave the device."],
   ["Which phones are supported?", "mirror is designed for modern iOS and Android phones. Final device compatibility will appear on each store listing."],
 ];
 

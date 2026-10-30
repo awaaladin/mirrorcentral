@@ -15,7 +15,7 @@ const facts = [
   ["468", "face points mapped on the phone"],
   [String(shadeCount), "shades with real finishes"],
   [String(lashStyles.length), "lash styles"],
-  ["2", "account types: Personal and Pro / MUA"],
+  ["1", "free app, one payment to remove the watermark"],
 ] as const;
 
 function AboutPage() {
