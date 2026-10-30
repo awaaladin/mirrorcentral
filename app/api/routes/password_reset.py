@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
 from html import escape
@@ -41,6 +42,24 @@ class ResetRequest(BaseModel):
 class ResetConfirm(BaseModel):
     token: str
     password: str = Field(min_length=8, max_length=128)
+
+
+# An open "send an email" endpoint must not be usable to flood someone's inbox (or use up the shared sender's daily
+# limit). In-process, so each server instance keeps its own count; enough to stop a script hammering one address.
+_RECENT: dict[str, list[float]] = {}
+_MAX_PER_ADDRESS_PER_HOUR = 3
+
+
+def _allowed_to_send(email: str) -> bool:
+    now = time.monotonic()
+    recent = [t for t in _RECENT.get(email, []) if now - t < 3600]
+    if len(recent) >= _MAX_PER_ADDRESS_PER_HOUR:
+        _RECENT[email] = recent
+        return False
+    _RECENT[email] = [*recent, now]
+    if len(_RECENT) > 5000:  # never grow without bound
+        _RECENT.clear()
+    return True
 
 
 def _fingerprint(user: User) -> str:
@@ -85,7 +104,7 @@ async def _set_password(session: AsyncSession, user: User, password: str) -> Non
 async def request_reset(body: ResetRequest, session: AsyncSession = Depends(get_session)) -> dict:
     email = body.email.strip().lower()
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
-    if user is not None:
+    if user is not None and _allowed_to_send(email):
         link = f"{mailer.public_base_url()}/auth/password-reset/page?token={quote(make_reset_token(user))}"
         mailer.send_password_reset(user.email, link)
     return {"detail": "If that email has an account, we sent a link to reset the password."}
@@ -141,3 +160,30 @@ async def reset_page_submit(request: Request, session: AsyncSession = Depends(ge
         return _page(_form(token, "Use a password of 8 to 128 characters."), status.HTTP_400_BAD_REQUEST)
     await _set_password(session, user, password)
     return _page('<p class="ok">Your password was changed. Open the Mirror app and sign in with the new one.</p>')
+
+
+def _request_form(message: str = "") -> str:
+    if message:
+        return f'<p class="ok">{escape(message)}</p>'
+    return (
+        '<p>Enter the email you signed up with and we will send you a link.</p>'
+        '<form method="post" action="/auth/password-reset/request-page"><label for="email">Email</label>'
+        '<input id="email" name="email" type="email" autocomplete="email" required><button type="submit">Send reset link</button></form>'
+    )
+
+
+@router.get("/request-page", response_class=HTMLResponse)
+async def request_page() -> HTMLResponse:
+    """What the app's "Forgot password?" link opens."""
+    return _page(_request_form())
+
+
+@router.post("/request-page", response_class=HTMLResponse)
+async def request_page_submit(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse:
+    fields = {k: v[0] for k, v in parse_qs((await request.body()).decode("utf-8", "ignore")).items()}
+    email = fields.get("email", "").strip().lower()
+    user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none() if email else None
+    if user is not None and _allowed_to_send(email):
+        link = f"{mailer.public_base_url()}/auth/password-reset/page?token={quote(make_reset_token(user))}"
+        mailer.send_password_reset(user.email, link)
+    return _page(_request_form("If that email has an account, we just sent a link to choose a new password. It may land in spam."))

@@ -163,3 +163,30 @@ def test_the_web_page_from_the_email_works_once(client: TestClient) -> None:
                      headers={"content-type": "application/x-www-form-urlencoded"})
     assert ok.status_code == 200 and "Your password was changed" in ok.text
     assert client.get(f"/auth/password-reset/page?token={token}").status_code == 400
+
+
+def test_a_script_cannot_flood_one_address_with_reset_emails(client: TestClient) -> None:
+    from app.api.routes import password_reset
+
+    password_reset._RECENT.clear()
+    _register(client)
+    FakeSMTP.sent.clear()
+    for _ in range(6):
+        assert client.post("/auth/password-reset", json={"email": "user@example.com"}).status_code == 200
+    assert len(FakeSMTP.sent) == 3
+
+
+def test_the_request_page_sends_the_link(client: TestClient) -> None:
+    from app.api.routes import password_reset
+
+    password_reset._RECENT.clear()
+    _register(client)
+    FakeSMTP.sent.clear()
+    assert client.get("/auth/password-reset/request-page").status_code == 200
+    r = client.post("/auth/password-reset/request-page", content="email=user%40example.com",
+                    headers={"content-type": "application/x-www-form-urlencoded"})
+    assert r.status_code == 200 and "we just sent a link" in r.text
+    assert len(FakeSMTP.sent) == 1
+    again = client.post("/auth/password-reset/request-page", content="email=nobody%40example.com",
+                        headers={"content-type": "application/x-www-form-urlencoded"})
+    assert "we just sent a link" in again.text and len(FakeSMTP.sent) == 1
