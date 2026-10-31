@@ -62,8 +62,8 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          <Button asChild variant="ghost" className="rounded-full px-5"><Link to="/pricing">Subscribe</Link></Button>
-          <Button asChild className="rounded-full px-6"><a href="#download">Download</a></Button>
+          <Button asChild variant="ghost" className="rounded-full px-5"><Link to="/pricing">Pricing</Link></Button>
+          <Button asChild className="rounded-full px-6"><a href="/#download">Download</a></Button>
         </div>
         <Button variant="ghost" size="icon" className="shrink-0 rounded-full md:hidden" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close menu" : "Open menu"}>
           {open ? <X /> : <Menu />}
