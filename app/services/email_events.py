@@ -1,5 +1,5 @@
-"""Sends Mirror's event emails (welcome, payment receipt) without touching the code that creates users
-or confirms payments: it listens to the database instead.
+"""Sends Mirror's payment receipts without touching the code that confirms payments: it listens to the
+database instead. (The welcome email carries the email-confirmation code, so /auth/register sends it.)
 
 An email is queued when the row is written and sent only after the transaction COMMITS; a rollback
 discards the queue, so nobody gets a receipt for a payment that did not stick.
@@ -24,12 +24,6 @@ def _queue(target, job) -> None:
     session = object_session(target)
     if session is not None:
         session.info.setdefault(_QUEUE_KEY, []).append(job)
-
-
-@event.listens_for(User, "after_insert")
-def _welcome(mapper, connection, user: User) -> None:
-    email = user.email
-    _queue(user, lambda: mailer.send_welcome(email))
 
 
 def _paid(mapper, connection, payment: Payment) -> None:

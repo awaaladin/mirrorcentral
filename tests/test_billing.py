@@ -31,7 +31,7 @@ def _checkout(client: TestClient, headers: dict[str, str], plan: str = "solo") -
     return response.json()["reference"], init
 
 
-def _charge(reference: str, amount_kobo: int = 750_000) -> dict:
+def _charge(reference: str, amount_kobo: int = 200_000) -> dict:
     return {"id": 4242, "reference": reference, "amount": amount_kobo, "status": "success", "currency": "NGN"}
 
 
@@ -46,39 +46,34 @@ def test_checkout_reference_and_metadata_identify_mirror(client: TestClient) -> 
     headers = _auth_headers(client)
     reference, init = _checkout(client, headers)
 
-    assert reference.startswith("MIRROR-UNLOCK-")
+    assert reference.startswith("MIRROR-PRO-")
     kwargs = init.call_args.kwargs
-    assert kwargs["amount_kobo"] == 750_000
+    assert kwargs["amount_kobo"] == 200_000
     assert kwargs["callback_url"].endswith("/billing/return")
     assert kwargs["metadata"]["app"] == "MIRROR"
     assert kwargs["metadata"]["custom_fields"][0]["value"] == "Mirror"
 
 
-def test_webhook_unlocks_the_account_for_good(client: TestClient) -> None:
+def test_webhook_activates_personal_once(client: TestClient) -> None:
     headers = _auth_headers(client)
     reference, _ = _checkout(client, headers)
-    assert client.get("/billing/subscription", headers=headers).json()["unlocked"] is False
+    assert client.get("/billing/subscription", headers=headers).json()["active"] is False
 
     payload = {"event": "charge.success", "data": _charge(reference)}
     assert _signed_webhook(client, payload).status_code == 200
+    first = client.get("/billing/subscription", headers=headers).json()
     assert _signed_webhook(client, payload).status_code == 200  # re-delivery
+    second = client.get("/billing/subscription", headers=headers).json()
 
-    assert client.get("/billing/subscription", headers=headers).json() == {
-        "plan": None, "active": False, "renews_at": None, "unlocked": True,
-    }
+    assert first["active"] is True and first["plan"] == "solo" and first["unlocked"] is False
+    assert first["renews_at"] == second["renews_at"]
 
 
-def test_unlocked_account_is_not_charged_again(client: TestClient) -> None:
+def test_paying_confirms_the_email(client: TestClient) -> None:
     headers = _auth_headers(client)
     reference, _ = _checkout(client, headers)
     _signed_webhook(client, {"event": "charge.success", "data": _charge(reference)})
-    assert client.post("/billing/checkout", json={"plan": "solo"}, headers=headers).status_code == 409
-
-
-def test_studio_reference_is_pro(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(get_settings(), "studio_plan_available", True)
-    reference, _ = _checkout(client, _auth_headers(client), plan="studio")
-    assert reference.startswith("MIRROR-PRO-")
+    assert client.get("/usage", headers=headers).json()["email_verified"] is True
 
 
 def test_webhook_rejects_bad_signature(client: TestClient) -> None:
@@ -95,7 +90,7 @@ def test_short_payment_does_not_activate(client: TestClient) -> None:
     headers = _auth_headers(client)
     reference, _ = _checkout(client, headers)
     _signed_webhook(client, {"event": "charge.success", "data": _charge(reference, amount_kobo=100)})
-    assert client.get("/billing/subscription", headers=headers).json()["unlocked"] is False
+    assert client.get("/billing/subscription", headers=headers).json()["active"] is False
 
 
 def test_verify_without_webhook(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -131,7 +126,6 @@ def test_return_page_confirms_payment(client: TestClient) -> None:
 
 def test_plans_are_public(client: TestClient) -> None:
     plans = client.get("/billing/plans").json()
-    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 7500, "studio": 12000}
+    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 2000, "studio": 12000}
     assert {p["plan"]: p["available"] for p in plans} == {"solo": True, "studio": False}
-    assert {p["plan"]: p["one_time"] for p in plans} == {"solo": True, "studio": False}
-    assert {p["plan"]: p["period_days"] for p in plans} == {"solo": None, "studio": 30}
+    assert {p["plan"]: p["name"] for p in plans} == {"solo": "Mirror Personal (30 days)", "studio": "Mirror Studio (30 days)"}

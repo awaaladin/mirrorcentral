@@ -1,32 +1,25 @@
 from __future__ import annotations
 
-from collections.abc import Generator
-
 import httpx
 import pytest
-from fastapi import Depends
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_current_user, require_showroom
 from app.api.routes import showroom as showroom_route
 from app.config import get_settings
-from app.main import app
 from app.models.enums import SubscriptionPlan
-from app.models.user import User
 from app.services import showroom as showroom_service
+from app.services.entitlements import Access
 from app.services.showroom import FaceAnalysis, ShowroomUnavailable
 
 
-async def _as_solo(user: User = Depends(get_current_user)) -> tuple[User, SubscriptionPlan]:
-    return user, SubscriptionPlan.SOLO
-
-
 @pytest.fixture(autouse=True)
-def _solo_access() -> Generator[None, None, None]:
-    """Who may use this route is tested in test_entitlements.py; here every user has Solo."""
-    app.dependency_overrides[require_showroom] = _as_solo
-    yield
-    app.dependency_overrides.pop(require_showroom, None)
+def _paid_access(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Who may use this route, and how often, is tested in test_entitlements.py; here everyone pays."""
+
+    async def paid(session, user) -> Access:
+        return Access(SubscriptionPlan.SOLO)
+
+    monkeypatch.setattr(showroom_route, "access_for", paid)
 
 
 def _auth_headers(client: TestClient) -> dict[str, str]:

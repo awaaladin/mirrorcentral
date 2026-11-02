@@ -27,6 +27,7 @@ class UserPublic(BaseModel):
     id: uuid.UUID
     email: str
     account_type: AccountType
+    email_verified: bool
 
 
 class TokenResponse(BaseModel):

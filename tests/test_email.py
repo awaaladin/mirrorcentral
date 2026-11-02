@@ -103,7 +103,7 @@ def _checkout_and_pay(client: TestClient) -> str:
     init = mock.AsyncMock(return_value={"authorization_url": "https://checkout.paystack.com/abc"})
     with mock.patch("app.services.paystack.initialize_transaction", init):
         reference = client.post("/billing/checkout", json={"plan": "solo"}, headers=headers).json()["reference"]
-    payload = {"event": "charge.success", "data": {"id": 4242, "reference": reference, "amount": 750_000, "status": "success", "currency": "NGN"}}
+    payload = {"event": "charge.success", "data": {"id": 4242, "reference": reference, "amount": 200_000, "status": "success", "currency": "NGN"}}
     body = json.dumps(payload).encode()
     sig = hmac.new(SECRET.encode(), body, hashlib.sha512).hexdigest()
     for _ in range(2):  # Paystack re-delivers
@@ -116,7 +116,7 @@ def test_a_confirmed_payment_sends_exactly_one_receipt(client: TestClient) -> No
     receipts = [m for m in FakeSMTP.sent if "receipt" in m["Subject"].lower()]
     assert len(receipts) == 1
     assert receipts[0]["To"] == "payer@example.com"
-    assert "7,500.00" in receipts[0]["Subject"]
+    assert "2,000.00" in receipts[0]["Subject"]
     assert reference in _html(receipts[0])
 
 

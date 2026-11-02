@@ -17,6 +17,8 @@ from app.core.security import hash_password, verify_password
 from app.db.session import get_session
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
+from app.services import mailer
+from app.services.email_verification import issue_code
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -68,7 +70,10 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
     await session.commit()
     await session.refresh(user)
 
-    return await _start_new_session(session, user)
+    code = await issue_code(session, user)
+    tokens = await _start_new_session(session, user)
+    mailer.send_welcome(user.email, code)  # Never raises: an email problem can't fail sign-up.
+    return tokens
 
 
 @router.post("/login", response_model=TokenResponse)

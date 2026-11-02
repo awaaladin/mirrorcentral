@@ -21,14 +21,12 @@ from app.services import paystack
 from app.services.billing import (
     apply_paystack_transaction,
     aware_utc,
-    is_one_time,
     is_ours,
     latest_subscription,
     make_reference,
     payment_by_reference,
     paystack_metadata,
     plan_label,
-    reference_purpose,
 )
 from app.services.entitlements import active_plan
 
@@ -41,9 +39,7 @@ class PlanPublic(BaseModel):
     plan: SubscriptionPlan
     name: str
     price_ngn: int
-    one_time: bool
-    # None for the one-time payment, which doesn't run out.
-    period_days: int | None
+    period_days: int
     # False = shown (so people know it's coming and roughly what it costs) but not
     # purchasable yet - see Settings.studio_plan_available.
     available: bool
@@ -68,7 +64,7 @@ class SubscriptionPublic(BaseModel):
     plan: SubscriptionPlan | None
     active: bool
     renews_at: datetime | None
-    # The one-time payment went through on this account.
+    # Bought Solo back when it was sold as a one-time payment (see User.unlocked_at).
     unlocked: bool
 
 
@@ -86,8 +82,7 @@ async def list_plans() -> list[PlanPublic]:
     settings = get_settings()
     return [
         PlanPublic(plan=plan, name=plan_label(plan), price_ngn=settings.plan_price_ngn(plan.value),
-                   one_time=is_one_time(plan), period_days=None if is_one_time(plan) else settings.plan_period_days,
-                   available=settings.plan_available(plan.value))
+                   period_days=settings.plan_period_days, available=settings.plan_available(plan.value))
         for plan in SubscriptionPlan
     ]
 
@@ -103,11 +98,8 @@ async def checkout(
     settings = get_settings()
     if not settings.plan_available(request.plan.value):
         raise HTTPException(status.HTTP_409_CONFLICT, "This plan isn't available to buy yet.")
-    if is_one_time(request.plan) and user.unlocked_at is not None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "This account is already unlocked - there's nothing more to pay.")
-    purpose = reference_purpose(request.plan)
     payment = Payment(
-        reference=make_reference(purpose),
+        reference=make_reference("PRO"),
         user_id=user.id,
         plan=request.plan,
         amount_kobo=settings.plan_price_ngn(request.plan.value) * 100,
@@ -118,7 +110,7 @@ async def checkout(
             amount_kobo=payment.amount_kobo,
             reference=payment.reference,
             callback_url=f"{settings.public_base_url.rstrip('/')}/billing/return",
-            metadata=paystack_metadata(purpose, plan_label(request.plan), user_id=str(user.id), plan=request.plan.value),
+            metadata=paystack_metadata("PRO", plan_label(request.plan), user_id=str(user.id), plan=request.plan.value),
         )
     except paystack.PaystackNotConfigured:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Payments aren't available right now.")
@@ -178,16 +170,17 @@ async def license_for_device(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> LicensePublic:
-    """What the app checks in with. The signed license is what lets it work offline: a one-time
-    unlock's never practically expires, while Pro's lapses after license_ttl_days if the phone
-    stops checking in. It only ever decides what the app displays - the Pro routes re-check the
-    subscription themselves."""
+    """What the app checks in with. The signed license is what lets it apply a paid plan offline
+    (no watermark, no photo limit); it lapses after license_ttl_days if the phone stops checking
+    in, except for earlier one-time buyers, whose never practically expires. Showroom and Client
+    Mode re-check the subscription here regardless."""
     settings = get_settings()
     now = datetime.now(UTC)
     subscription = await latest_subscription(session, user.id)
     renews_at = aware_utc(subscription.renews_at) if subscription else None
-    if await active_plan(session, user.id) == SubscriptionPlan.STUDIO and renews_at is not None:
-        plan, expires_at = SubscriptionPlan.STUDIO, min(renews_at, now + timedelta(days=settings.license_ttl_days))
+    plan = await active_plan(session, user.id)
+    if plan is not None and renews_at is not None:
+        expires_at = min(renews_at, now + timedelta(days=settings.license_ttl_days))
     elif user.unlocked_at is not None:
         plan, expires_at = SubscriptionPlan.SOLO, now + timedelta(days=settings.lifetime_license_days)
     else:
@@ -208,8 +201,7 @@ async def payment_return(reference: str = "", session: AsyncSession = Depends(ge
 
     if payment is not None and payment.status == PaymentStatus.SUCCESS:
         title = "Payment received"
-        message = ("Mirror is unlocked on your account for good. You can go back to the Mirror app."
-                   if is_one_time(payment.plan) else "Mirror Pro is active on your account. You can go back to the Mirror app.")
+        message = f"{plan_label(payment.plan)} is active on your account. You can go back to the Mirror app."
     elif payment is not None and payment.status == PaymentStatus.FAILED:
         title, message = "Payment not accepted", "Please contact support with your reference."
     else:

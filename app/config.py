@@ -56,11 +56,11 @@ class Settings(BaseSettings):
     paystack_base_url: str = "https://api.paystack.co"
     # Public URL of this API: Paystack sends the payer back to {public_base_url}/billing/return.
     public_base_url: str = "https://mirrorcentral.vercel.app"
-    # In whole naira. Solo is a one-time payment; one Studio payment buys plan_period_days.
-    solo_plan_price_ngn: int = 7500
+    # In whole naira; one payment buys plan_period_days. "solo" is Mirror Personal. (A new name,
+    # not SOLO_PLAN_PRICE_NGN, so an old deployed value for the retired one-time price can't apply.)
+    personal_plan_price_ngn: int = 2000
     studio_plan_price_ngn: int = 12000
-    # "solo" is the one-time payment: paid once, it removes the watermark forever (see
-    # User.unlocked_at). Pro isn't built yet, so only that one is on sale.
+    # Personal is on sale; Studio (Pro) isn't built out yet.
     solo_plan_available: bool = True
     # Studio pricing is still being reviewed - it's shown (name + price) but not purchasable
     # yet: /billing/plans reports it as unavailable, and /billing/checkout refuses it. Flip to
@@ -73,8 +73,17 @@ class Settings(BaseSettings):
     license_private_key: str = ""
     # How long a phone can go without checking in before a Pro license lapses.
     license_ttl_days: int = 14
-    # A one-time unlock has nothing to lapse, so its license just outlasts any realistic use.
+    # Earlier one-time buyers have nothing to lapse, so their license outlasts any realistic use.
     lifetime_license_days: int = 36500
+
+    # Monthly allowances (app/services/entitlements.py). Paid plans have unlimited photos.
+    free_photos_per_month: int = 10
+    free_showroom_per_month: int = 3
+    personal_showroom_per_month: int = 30
+    studio_showroom_per_month: int = 100
+    # Ceiling on free Showroom analyses across every account per UTC day, so a burst of sign-ups
+    # can't run up the Gemini bill. Paid use isn't counted against it.
+    free_showroom_daily_total: int = 300
 
     # Firebase Admin SDK credential (see app/services/push.py) - either works, checked in this
     # order. _PATH is for local dev (points at a file on disk, outside git). _JSON is for Vercel
@@ -194,7 +203,7 @@ class Settings(BaseSettings):
         return self.admin_session_secret or self.jwt_secret
 
     def plan_price_ngn(self, plan: str) -> int:
-        prices = {"solo": self.solo_plan_price_ngn, "studio": self.studio_plan_price_ngn}
+        prices = {"solo": self.personal_plan_price_ngn, "studio": self.studio_plan_price_ngn}
         try:
             return prices[plan]
         except KeyError as exc:

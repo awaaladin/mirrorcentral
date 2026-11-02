@@ -25,10 +25,19 @@ class User(SQLModel, table=True):
     # already-issued token (on whatever device had the old one) stops matching - see
     # get_current_user and /auth/refresh. One active sign-in per account at a time.
     current_session_id: str | None = Field(default=None, max_length=64)
-    # Set once by the one-time payment (see apply_paystack_transaction) and never cleared: that
-    # purchase removes the watermark for good. Separate from subscriptions, which are for Pro.
+    # Set for people who bought Solo when it was sold as a one-time payment: they keep unlimited
+    # photos and no watermark for good (see app/services/entitlements.py). Never set for new buyers.
     unlocked_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    # Email confirmation (app/services/email_verification.py). Only the code's hash is kept.
+    email_verified_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    email_code_hash: str | None = Field(default=None, max_length=64)
+    email_code_expires_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    email_code_attempts: int = Field(default=0, nullable=False)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
+
+    @property
+    def email_verified(self) -> bool:
+        return self.email_verified_at is not None

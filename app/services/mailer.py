@@ -108,12 +108,29 @@ def naira_from_kobo(kobo: int) -> str:
     return "₦{:,.2f}".format(int(kobo) / 100)
 
 
-def send_welcome(email: str) -> bool:
+def send_welcome(email: str, code: str) -> bool:
     return send_email(
         email,
         "Welcome to Mirror",
         "Welcome to Mirror",
-        ["Your account is ready.", "Open the app to try shades on a client, build looks, and share them."],
+        [
+            "Your account is ready.",
+            f"Your confirmation code is {code}. Enter it in the app to start your free photos and Showroom analyses. "
+            "It expires in 30 minutes.",
+            "Open the app to try shades, build looks, and share them.",
+        ],
+    )
+
+
+def send_verification_code(email: str, code: str) -> bool:
+    return send_email(
+        email,
+        f"Your Mirror code: {code}",
+        "Confirm your email",
+        [
+            f"Your confirmation code is {code}. Enter it in the Mirror app. It expires in 30 minutes.",
+            "If you did not ask for this, ignore this email.",
+        ],
     )
 
 

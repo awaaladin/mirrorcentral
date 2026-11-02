@@ -21,4 +21,5 @@ def test_all_models_create_tables_cleanly() -> None:
         "app_releases",
         "device_tokens",
         "payments",
+        "usage_events",
     }
