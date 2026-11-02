@@ -8,8 +8,8 @@ import { PageShell, StoreBadges } from "@/components/mirror-shell";
 import { ApiError, listPlans, login, register, startCheckout, type AuthUser, type BillingPlan, type PlanPublic } from "@/lib/api";
 
 export const Route = createFileRoute("/pricing")({ head: () => ({ meta: [
-  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Prepaid Mirror Pro, billed through Paystack and tied to your Mirror account - not your device." },
-  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Prepaid Pro plans, paid once per period through Paystack." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
+  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Mirror is free. Pay ₦7,500 once to remove the watermark forever. Mirror Pro is coming soon." },
+  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Free app, one payment to remove the watermark forever, Mirror Pro coming soon." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
 ] }), component: PricingPage });
 
 const naira = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });
@@ -20,15 +20,17 @@ function shortName(name: string): string {
   return name.replace(/\s*\(\d+\s*days?\)\s*$/i, "");
 }
 
+const freeFeatures = ["Full on-device makeup simulation", "Saved looks and custom shades", "Certified shade library", "Works offline", "Share looks with a small mirror watermark"];
+
 const planCopy: Record<BillingPlan, { eyebrow: string; features: string[]; highlighted: boolean }> = {
   solo: {
-    eyebrow: "For yourself",
-    features: ["Full on-device simulation", "Personal look library", "Certified shade library", "Works fully offline"],
+    eyebrow: "Pay once",
+    features: ["Everything in Free", "No watermark on shared looks", "Yours forever - no renewals", "Tied to your account, works offline"],
     highlighted: false,
   },
   studio: {
     eyebrow: "For artists & studios",
-    features: ["Client Mode Directory", "Private client profiles", "Unlimited shade formulations", "Studio-ready exports"],
+    features: ["No watermark", "Showroom AI skin and undertone analysis", "Client Mode directory", "Private client profiles and notes"],
     highlighted: true,
   },
 };
@@ -46,22 +48,32 @@ function PricingPage() {
   }, []);
 
   return <PageShell><main className="px-5 pb-24 pt-36 sm:px-8 md:pt-44"><div className="mx-auto max-w-6xl">
-    <header className="reveal-flow text-center"><p className="text-xs font-semibold uppercase text-primary">Atelier access</p><h1 className="mx-auto mt-4 max-w-3xl text-balance text-6xl leading-[.95] sm:text-7xl">Choose the space your artistry needs.</h1><p className="mx-auto mt-6 max-w-xl text-muted-foreground">Prepaid Mirror Pro, paid through Paystack. Your plan is tied to your Mirror account, not this device or browser.</p></header>
+    <header className="reveal-flow text-center"><p className="text-xs font-semibold uppercase text-primary">Atelier access</p><h1 className="mx-auto mt-4 max-w-3xl text-balance text-6xl leading-[.95] sm:text-7xl">Free to use. Pay once to keep it clean.</h1><p className="mx-auto mt-6 max-w-xl text-muted-foreground">Use the full makeup studio at no cost. Pay once to remove the watermark forever, on your account. Mirror Pro, with AI analysis and tools for working artists, is coming later.</p></header>
 
     {plansError && <p className="reveal-flow mx-auto mt-10 max-w-md rounded-2xl bg-destructive/10 p-5 text-center text-sm text-destructive">{plansError}</p>}
 
     {!plans && !plansError && <div className="mt-20 flex justify-center"><Loader2 className="size-8 animate-spin text-primary" /></div>}
 
     {plans && (
-      <div className="mt-16 grid gap-6 md:grid-cols-2">
+      <div className="mt-16 grid gap-6 md:grid-cols-3">
+        <FreePlan />
         {plans.map((plan) => <Plan key={plan.plan} plan={plan} onChoose={() => setCheckoutPlan(plan)} />)}
       </div>
     )}
 
-    <div className="mt-16 flex flex-col items-center gap-5 text-center"><p className="text-sm text-muted-foreground">Prefer to purchase in the app?</p><StoreBadges /></div>
+    <div className="mt-16 flex flex-col items-center gap-5 text-center"><p className="text-sm text-muted-foreground">Get the free app</p><StoreBadges /></div>
   </div></main>
   <CheckoutDialog plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} />
   </PageShell>;
+}
+
+function FreePlan() {
+  return <article className="reveal-flow flex min-h-[530px] flex-col rounded-[2.5rem] border border-border bg-card p-8 sm:p-10">
+    <p className="text-xs font-semibold uppercase text-primary">For everyone</p>
+    <h2 className="mt-3 text-4xl">Mirror</h2>
+    <p className="mt-8 font-display text-5xl">Free</p>
+    <ul className="mt-10 flex-1 space-y-4">{freeFeatures.map((feature) => <li key={feature} className="flex items-center gap-3 text-sm"><span className="grid size-7 place-items-center rounded-full bg-accent text-primary"><Check className="size-4" /></span>{feature}</li>)}</ul>
+  </article>;
 }
 
 function Plan({ plan, onChoose }: { plan: PlanPublic; onChoose: () => void }) {
@@ -69,9 +81,10 @@ function Plan({ plan, onChoose }: { plan: PlanPublic; onChoose: () => void }) {
   return <article className={`reveal-flow flex min-h-[530px] flex-col rounded-[2.5rem] p-8 sm:p-10 ${copy.highlighted ? "bg-foreground text-background" : "border border-border bg-card"}`}>
     <p className={`text-xs font-semibold uppercase ${copy.highlighted ? "text-secondary" : "text-primary"}`}>{copy.eyebrow}</p>
     <h2 className="mt-3 text-4xl">{shortName(plan.name)}</h2>
-    <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}<span className={`ml-2 font-body text-xs uppercase ${copy.highlighted ? "text-background/50" : "text-muted-foreground"}`}>one-time payment</span></p>
-    <p className={`mt-2 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}>Covers {plan.period_days} days of Pro - pay again anytime to keep going</p>
-    {!plan.available && <p className={`mt-2 flex items-center gap-1.5 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}><Clock className="size-3.5" /> Pricing under review - not available to buy yet</p>}
+    {plan.available ? <>
+      <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}{plan.one_time && <span className="ml-2 font-body text-xs uppercase text-muted-foreground">one-time payment</span>}</p>
+      <p className={`mt-2 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}>{plan.one_time ? "Pay once, keep it forever" : `Covers ${plan.period_days} days - pay again anytime to keep going`}</p>
+    </> : <p className={`mt-8 flex items-center gap-2 font-display text-3xl`}><Clock className="size-6" /> Coming soon</p>}
     <ul className="mt-10 flex-1 space-y-4">{copy.features.map((feature) => <li key={feature} className="flex items-center gap-3 text-sm"><span className={`grid size-7 place-items-center rounded-full ${copy.highlighted ? "bg-background/10 text-secondary" : "bg-accent text-primary"}`}><Check className="size-4" /></span>{feature}</li>)}</ul>
     <Button variant={copy.highlighted ? "secondary" : "default"} className="mt-10 h-12 rounded-full" onClick={onChoose} disabled={!plan.available}>{plan.available ? `Choose ${shortName(plan.name)}` : "Coming soon"}</Button>
   </article>;
@@ -96,7 +109,7 @@ function CheckoutDialog({ plan, onClose }: { plan: PlanPublic | null; onClose: (
     setError("");
     try {
       const auth: { access_token: string; user: AuthUser } =
-        mode === "login" ? await login(email, password) : await register(email, password, plan.plan === "studio" ? "business" : "consumer");
+        mode === "login" ? await login(email, password) : await register(email, password);
       setStep("redirecting");
       const checkout = await startCheckout(auth.access_token, plan.plan);
       window.location.href = checkout.authorization_url;
@@ -125,7 +138,7 @@ function CheckoutDialog({ plan, onClose }: { plan: PlanPublic | null; onClose: (
         <>
           <DialogHeader>
             <DialogTitle className="font-display text-4xl">{mode === "login" ? "Log in to pay" : "Create your account"}</DialogTitle>
-            <DialogDescription>{plan && shortName(plan.name)} · {plan ? naira.format(plan.price_ngn) : ""} one-time payment, covers {plan?.period_days} days. Use the same email you'll sign in with on the app.</DialogDescription>
+            <DialogDescription>{plan && shortName(plan.name)} · {plan ? naira.format(plan.price_ngn) : ""}{plan?.one_time ? " one-time payment, yours forever." : `, covers ${plan?.period_days} days.`} Use the same email you'll sign in with on the app.</DialogDescription>
           </DialogHeader>
           <form className="mt-3 space-y-4" onSubmit={submit}>
             <Input required type="email" placeholder="Email address" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 rounded-full px-5" />
@@ -139,7 +152,7 @@ function CheckoutDialog({ plan, onClose }: { plan: PlanPublic | null; onClose: (
             <button type="button" className="w-full text-center text-xs text-muted-foreground underline underline-offset-4" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>
               {mode === "login" ? "New here? Create an account instead" : "Already have an account? Log in instead"}
             </button>
-            <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="size-4" /> Your plan is unlocked on your account, not this device</p>
+            <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="size-4" /> Unlocked on your account, not this device</p>
           </form>
         </>
       )}

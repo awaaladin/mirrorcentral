@@ -56,14 +56,25 @@ class Settings(BaseSettings):
     paystack_base_url: str = "https://api.paystack.co"
     # Public URL of this API: Paystack sends the payer back to {public_base_url}/billing/return.
     public_base_url: str = "https://mirrorcentral.vercel.app"
-    # Prepaid Pro periods, in whole naira. One payment buys plan_period_days of the plan.
+    # In whole naira. Solo is a one-time payment; one Studio payment buys plan_period_days.
     solo_plan_price_ngn: int = 7500
     studio_plan_price_ngn: int = 12000
+    # "solo" is the one-time payment: paid once, it removes the watermark forever (see
+    # User.unlocked_at). Pro isn't built yet, so only that one is on sale.
+    solo_plan_available: bool = True
     # Studio pricing is still being reviewed - it's shown (name + price) but not purchasable
     # yet: /billing/plans reports it as unavailable, and /billing/checkout refuses it. Flip to
     # true once Studio is actually ready to sell.
     studio_plan_available: bool = False
     plan_period_days: int = 30
+
+    # Base64 of the PKCS#8 DER EC P-256 private key that signs Pro licenses (app/core/license.py).
+    # The app embeds only the matching public key. Unset = POST /billing/license answers 503.
+    license_private_key: str = ""
+    # How long a phone can go without checking in before a Pro license lapses.
+    license_ttl_days: int = 14
+    # A one-time unlock has nothing to lapse, so its license just outlasts any realistic use.
+    lifetime_license_days: int = 36500
 
     # Firebase Admin SDK credential (see app/services/push.py) - either works, checked in this
     # order. _PATH is for local dev (points at a file on disk, outside git). _JSON is for Vercel
@@ -190,7 +201,7 @@ class Settings(BaseSettings):
             raise ValueError(f"Unknown plan: {plan!r}") from exc
 
     def plan_available(self, plan: str) -> bool:
-        availability = {"solo": True, "studio": self.studio_plan_available}
+        availability = {"solo": self.solo_plan_available, "studio": self.studio_plan_available}
         try:
             return availability[plan]
         except KeyError as exc:

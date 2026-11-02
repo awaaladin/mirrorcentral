@@ -63,7 +63,6 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
     user = User(
         email=email,
         password_hash=hash_password(request.password),
-        account_type=request.account_type,
     )
     session.add(user)
     await session.commit()

@@ -48,8 +48,10 @@ export type PlanPublic = {
   plan: BillingPlan;
   name: string;
   price_ngn: number;
-  period_days: number;
-  /** False = shown (name + price) but not purchasable yet - pricing still under review. */
+  one_time: boolean;
+  /** Null for the one-time payment, which doesn't run out. */
+  period_days: number | null;
+  /** False = shown but not purchasable yet. */
   available: boolean;
 };
 
@@ -64,10 +66,10 @@ export function login(email: string, password: string): Promise<TokenResponse> {
   return request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
 }
 
-export function register(email: string, password: string, accountType: "consumer" | "business"): Promise<TokenResponse> {
+export function register(email: string, password: string): Promise<TokenResponse> {
   return request("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password, account_type: accountType }),
+    body: JSON.stringify({ email, password }),
   });
 }
 

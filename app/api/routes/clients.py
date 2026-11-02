@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_client_mode
 from app.db.session import get_session
 from app.models.client_profile import ClientProfile
 from app.models.makeup_look import MakeupLook
@@ -14,6 +14,8 @@ from app.models.user import User
 from app.schemas.clients import ClientProfileCreate, ClientProfilePublic, ClientProfileUpdate
 from app.schemas.looks import MakeupLookCreate, MakeupLookPublic, MakeupLookUpdate
 
+# Creating and editing need Studio; reading and deleting don't, so someone whose Pro lapses can
+# still get at (or remove) their own clients' data.
 router = APIRouter(prefix="/clients", tags=["clients"])
 
 
@@ -36,7 +38,7 @@ async def _get_owned_look(session: AsyncSession, client: ClientProfile, look_id:
 @router.post("", response_model=ClientProfilePublic, status_code=status.HTTP_201_CREATED)
 async def create_client(
     payload: ClientProfileCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_client_mode),
     session: AsyncSession = Depends(get_session),
 ) -> ClientProfile:
     client = ClientProfile(owner_user_id=current_user.id, **payload.model_dump())
@@ -70,7 +72,7 @@ async def get_client(
 async def update_client(
     client_id: uuid.UUID,
     payload: ClientProfileUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_client_mode),
     session: AsyncSession = Depends(get_session),
 ) -> ClientProfile:
     client = await _get_owned_client(session, client_id, current_user)
@@ -97,7 +99,7 @@ async def delete_client(
 async def create_look(
     client_id: uuid.UUID,
     payload: MakeupLookCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_client_mode),
     session: AsyncSession = Depends(get_session),
 ) -> MakeupLook:
     client = await _get_owned_client(session, client_id, current_user)
@@ -141,7 +143,7 @@ async def update_look(
     client_id: uuid.UUID,
     look_id: uuid.UUID,
     payload: MakeupLookUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_client_mode),
     session: AsyncSession = Depends(get_session),
 ) -> MakeupLook:
     client = await _get_owned_client(session, client_id, current_user)
