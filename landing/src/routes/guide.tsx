@@ -18,11 +18,11 @@ const steps: Step[] = [
     points: [
       "Right after your first sign-up, a short walkthrough appears once. You will not see it again.",
     ],
-    note: "Mirror Pro is coming soon. It will add Showroom AI analysis and the Client Mode directory.",
+    note: "Mirror Studio is coming soon. It will add the Client Mode directory for working artists.",
   },
   {
     title: "Start on the Looks tab",
-    body: "Looks is your home screen, with five tabs along the bottom: Looks, Studio, Library, Clients and Settings. At the top is a Self and Client switch. Client is part of Mirror Pro; until then it shows a Pro badge and explains what it unlocks.",
+    body: "Looks is your home screen, with five tabs along the bottom: Looks, Studio, Library, Clients and Settings. At the top is a Self and Client switch. Client is part of Mirror Studio; until then it shows a Pro badge and explains what it unlocks.",
     points: [
       "IMPORT lets you choose a portrait from your phone. This is the button that works today.",
       "SIMULATE is the live camera mode. It is a Pro feature that is not released yet, so tapping it explains that instead of doing nothing.",
@@ -71,7 +71,7 @@ const steps: Step[] = [
     ],
   },
   {
-    title: "Work with clients (Mirror Pro)",
+    title: "Work with clients (Mirror Studio)",
     body: "The Clients tab is the Client Mode directory. Add a client with a name, notes such as undertone or wedding date, and a Self or Client tag. Search the list by name or notes, then START A LOOK IN THE STUDIO for that consultation.",
     points: ["On the free app, the Client Mode Directory shows a Pro badge and explains what Pro adds."],
   },
@@ -83,10 +83,10 @@ const steps: Step[] = [
 ];
 
 const soon = [
-  ["Live camera simulation", "Try makeup on the camera feed, with Mirror Pro."],
+  ["Live camera simulation", "Try makeup on the camera feed."],
   ["Background clean-up and relighting", "Remove the background from a saved look and light it like a studio portrait."],
   ["Gele and head-wrap preview", "Built, but held back until it looks right."],
-  ["Mirror Pro", "Showroom AI analysis and Client Mode, on the account you already have."],
+  ["Mirror Studio", "Client Mode and a larger Showroom allowance, on the account you already have."],
 ];
 
 const tips = [
