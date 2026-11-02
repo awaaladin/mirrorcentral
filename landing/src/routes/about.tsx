@@ -15,7 +15,7 @@ const facts = [
   ["468", "face points mapped on the phone"],
   [String(shadeCount), "shades with real finishes"],
   [String(lashStyles.length), "lash styles"],
-  ["1", "free app, one payment to remove the watermark"],
+  ["10", "free photos every month"],
 ] as const;
 
 function AboutPage() {
@@ -28,7 +28,7 @@ function AboutPage() {
       <div className="reveal-flow"><p className="text-xs font-semibold uppercase text-primary">The idea</p><h2 className="mt-3 text-5xl leading-none">Makeup that starts from our skin tones.</h2></div>
       <div className="reveal-flow space-y-5 leading-relaxed text-muted-foreground">
         <p>Makeup simulation can look ashy or muddy on deep skin tones. mirror's shade library is written for deep skin tones first, with names people actually say, such as brick red, oxblood, terracotta and warm cocoa, and a foundation range that still stretches from fair to the deepest ebony.</p>
-        <p>The app maps the face on the phone, so a portrait never has to leave the device to be tried on. Makeup artists get a Client Mode directory for bridal and editorial consultations, and the same account keeps their saved looks.</p>
+        <p>The app maps the face and paints the makeup on the phone, so trying on a look never uploads the portrait. Makeup artists get a Client Mode directory for bridal and editorial consultations, and the same account keeps their saved looks.</p>
         <p>The idea came from the students below. It was refined and built into the working app and the systems behind it.</p>
       </div>
     </section>

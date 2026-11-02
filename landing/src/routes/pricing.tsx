@@ -8,8 +8,8 @@ import { PageShell, StoreBadges } from "@/components/mirror-shell";
 import { ApiError, listPlans, login, register, startCheckout, type AuthUser, type BillingPlan, type PlanPublic } from "@/lib/api";
 
 export const Route = createFileRoute("/pricing")({ head: () => ({ meta: [
-  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Mirror is free. Pay ₦7,500 once to remove the watermark forever. Mirror Pro is coming soon." },
-  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Free app, one payment to remove the watermark forever, Mirror Pro coming soon." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
+  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Mirror is free with 10 photos and 3 Showroom AI analyses a month. Mirror Personal is ₦2,000 for 30 days." },
+  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Free to start. Mirror Personal is ₦2,000 for 30 days. Mirror Studio is coming soon." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
 ] }), component: PricingPage });
 
 const naira = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });
@@ -20,17 +20,17 @@ function shortName(name: string): string {
   return name.replace(/\s*\(\d+\s*days?\)\s*$/i, "");
 }
 
-const freeFeatures = ["Full on-device makeup simulation", "Saved looks and custom shades", "Certified shade library", "Works offline", "Share looks with a small mirror watermark"];
+const freeFeatures = ["10 new photos a month, as many looks as you like on each", "3 Showroom AI analyses a month", "Saved looks and custom shades", "Certified shade library", "Shared looks carry a small mirror watermark"];
 
 const planCopy: Record<BillingPlan, { eyebrow: string; features: string[]; highlighted: boolean }> = {
   solo: {
-    eyebrow: "Pay once",
-    features: ["Everything in Free", "No watermark on shared looks", "Yours forever - no renewals", "Tied to your account, works offline"],
+    eyebrow: "For yourself",
+    features: ["Unlimited photos", "30 Showroom AI analyses a month", "No watermark on saved or shared looks", "On your account, not one phone"],
     highlighted: false,
   },
   studio: {
     eyebrow: "For artists & studios",
-    features: ["No watermark", "Showroom AI skin and undertone analysis", "Client Mode directory", "Private client profiles and notes"],
+    features: ["Everything in Personal", "100 Showroom AI analyses a month", "Client Mode directory", "Private client profiles and notes"],
     highlighted: true,
   },
 };
@@ -48,7 +48,7 @@ function PricingPage() {
   }, []);
 
   return <PageShell><main className="px-5 pb-24 pt-36 sm:px-8 md:pt-44"><div className="mx-auto max-w-6xl">
-    <header className="reveal-flow text-center"><p className="text-xs font-semibold uppercase text-primary">Atelier access</p><h1 className="mx-auto mt-4 max-w-3xl text-balance text-6xl leading-[.95] sm:text-7xl">Free to use. Pay once to keep it clean.</h1><p className="mx-auto mt-6 max-w-xl text-muted-foreground">Use the full makeup studio at no cost. Pay once to remove the watermark forever, on your account. Mirror Pro, with AI analysis and tools for working artists, is coming later.</p></header>
+    <header className="reveal-flow text-center"><p className="text-xs font-semibold uppercase text-primary">Atelier access</p><h1 className="mx-auto mt-4 max-w-3xl text-balance text-6xl leading-[.95] sm:text-7xl">Free to start. Pay when you need more.</h1><p className="mx-auto mt-6 max-w-xl text-muted-foreground">Every account gets 10 new photos and 3 Showroom AI analyses a month. Personal removes the limits on photos and the watermark. Studio, for working artists, is coming later.</p></header>
 
     {plansError && <p className="reveal-flow mx-auto mt-10 max-w-md rounded-2xl bg-destructive/10 p-5 text-center text-sm text-destructive">{plansError}</p>}
 
@@ -82,8 +82,8 @@ function Plan({ plan, onChoose }: { plan: PlanPublic; onChoose: () => void }) {
     <p className={`text-xs font-semibold uppercase ${copy.highlighted ? "text-secondary" : "text-primary"}`}>{copy.eyebrow}</p>
     <h2 className="mt-3 text-4xl">{shortName(plan.name)}</h2>
     {plan.available ? <>
-      <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}{plan.one_time && <span className="ml-2 font-body text-xs uppercase text-muted-foreground">one-time payment</span>}</p>
-      <p className={`mt-2 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}>{plan.one_time ? "Pay once, keep it forever" : `Covers ${plan.period_days} days - pay again anytime to keep going`}</p>
+      <p className="mt-8 font-display text-5xl">{naira.format(plan.price_ngn)}<span className={`ml-2 font-body text-xs uppercase ${copy.highlighted ? "text-background/50" : "text-muted-foreground"}`}>/ {plan.period_days} days</span></p>
+      <p className={`mt-2 text-xs ${copy.highlighted ? "text-background/60" : "text-muted-foreground"}`}>Pay again anytime to keep going - nothing renews by itself</p>
     </> : <p className={`mt-8 flex items-center gap-2 font-display text-3xl`}><Clock className="size-6" /> Coming soon</p>}
     <ul className="mt-10 flex-1 space-y-4">{copy.features.map((feature) => <li key={feature} className="flex items-center gap-3 text-sm"><span className={`grid size-7 place-items-center rounded-full ${copy.highlighted ? "bg-background/10 text-secondary" : "bg-accent text-primary"}`}><Check className="size-4" /></span>{feature}</li>)}</ul>
     <Button variant={copy.highlighted ? "secondary" : "default"} className="mt-10 h-12 rounded-full" onClick={onChoose} disabled={!plan.available}>{plan.available ? `Choose ${shortName(plan.name)}` : "Coming soon"}</Button>
@@ -138,7 +138,7 @@ function CheckoutDialog({ plan, onClose }: { plan: PlanPublic | null; onClose: (
         <>
           <DialogHeader>
             <DialogTitle className="font-display text-4xl">{mode === "login" ? "Log in to pay" : "Create your account"}</DialogTitle>
-            <DialogDescription>{plan && shortName(plan.name)} · {plan ? naira.format(plan.price_ngn) : ""}{plan?.one_time ? " one-time payment, yours forever." : `, covers ${plan?.period_days} days.`} Use the same email you'll sign in with on the app.</DialogDescription>
+            <DialogDescription>{plan && shortName(plan.name)} · {plan ? naira.format(plan.price_ngn) : ""}, covers {plan?.period_days} days. Use the same email you'll sign in with on the app.</DialogDescription>
           </DialogHeader>
           <form className="mt-3 space-y-4" onSubmit={submit}>
             <Input required type="email" placeholder="Email address" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 rounded-full px-5" />

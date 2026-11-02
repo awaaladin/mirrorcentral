@@ -14,10 +14,10 @@ export const Route = createFileRoute("/contact")({ head: () => ({ meta: [
 ] }), component: ContactPage });
 
 const faqs = [
-  ["Does mirror really work offline?", "Yes. Face landmark detection, rendering and saved personal looks all run directly on your device after installation."],
-  ["Is mirror free?", "Yes. The app is free to download and use, including on-device simulation, saved looks and the certified shade library. Shared images carry a small mirror watermark; one ₦7,500 payment removes it forever, on your account."],
-  ["What makes Pro different?", "Pro adds client profiles, Client Mode Directory, unlimited formulations and polished studio exports."],
-  ["Can I use mirror with client photographs?", "Yes. Client Mode, which keeps client cards and notes, is coming with Mirror Pro Studio. The app is designed around private, on-device processing so client portraits do not need to leave the device."],
+  ["Does mirror need the internet?", "To start a new photo and for Showroom, yes. The makeup itself is painted on your phone, and looks you have already saved open without a connection."],
+  ["Is mirror free?", "Yes. Every account gets 10 new photos and 3 Showroom AI analyses a month, with saved looks and the full shade library. Shared looks carry a small mirror watermark. Mirror Personal, ₦2,000 for 30 days, removes the photo limit and the watermark."],
+  ["What will Studio add?", "Mirror Studio, coming soon, is for working artists: the Client Mode directory with client cards and notes, and a larger Showroom allowance."],
+  ["Can I use mirror with client photographs?", "Yes. The makeup is painted on the phone, so trying looks never uploads the portrait. Showroom is different: it sends the photo to an AI service to analyse it, so ask your client first. mirror does not store Showroom photos. Client Mode is coming with Mirror Studio."],
   ["Which phones are supported?", "mirror is designed for modern iOS and Android phones. Final device compatibility will appear on each store listing."],
 ];
 

@@ -14,7 +14,7 @@ type Step = { title: string; body: string; points: string[]; note?: string };
 const steps: Step[] = [
   {
     title: "Create your account",
-    body: "Sign up with an email and password. Mirror is free, with saved looks, the full shade library and custom shades. Looks you share carry a small mirror watermark until you make the one-time payment.",
+    body: "Sign up with an email and password. Mirror is free, with saved looks, the full shade library and custom shades. Every account gets 10 new photos and 3 Showroom AI analyses a month, after you enter the code from your welcome email. Looks you share carry a small mirror watermark unless you have Mirror Personal.",
     points: [
       "Right after your first sign-up, a short walkthrough appears once. You will not see it again.",
     ],
@@ -31,7 +31,7 @@ const steps: Step[] = [
   },
   {
     title: "Choose a photo",
-    body: "In the Studio, tap CHOOSE A PHOTO. mirror then reads the face on your phone. You will see “Detailing your photo…” while it maps the face, and nothing is uploaded to do this.",
+    body: "In the Studio, tap CHOOSE A PHOTO. mirror then reads the face on your phone. You will see “Detailing your photo…” while it maps the face, and nothing is uploaded to do this. Starting a new photo needs the internet so it can count towards your monthly photos.",
     points: [
       "Use a photo with exactly one face, looking toward the camera, in even light.",
       "If there is no face, or more than one, mirror tells you so and lets you TRY AGAIN with another photo.",

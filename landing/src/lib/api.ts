@@ -48,14 +48,12 @@ export type PlanPublic = {
   plan: BillingPlan;
   name: string;
   price_ngn: number;
-  one_time: boolean;
-  /** Null for the one-time payment, which doesn't run out. */
-  period_days: number | null;
+  period_days: number;
   /** False = shown but not purchasable yet. */
   available: boolean;
 };
 
-export type AuthUser = { id: string; email: string; account_type: "consumer" | "business" };
+export type AuthUser = { id: string; email: string; account_type: "consumer" | "business"; email_verified: boolean };
 export type TokenResponse = { access_token: string; refresh_token: string; user: AuthUser };
 
 export function listPlans(): Promise<PlanPublic[]> {
