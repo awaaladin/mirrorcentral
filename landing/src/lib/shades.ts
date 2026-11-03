@@ -3,8 +3,8 @@
  * from scripts/seed_shades.py (served by GET /shades) and, for eye colour, from the Android app's
  * bundled catalogue (EditorShadeData.kt) - eye colour has no server-side category yet.
  *
- * Eyeliner and gele shades exist in the data but are hidden from the app's tabs for now, so they are
- * left out here on purpose: this page should only promise what the app currently shows.
+ * Eyeshadow, eyeliner, lashes and gele exist in the app's code but are hidden from its tabs for now, so
+ * they are left out here on purpose: this page should only promise what the app currently shows.
  */
 
 export type Finish = "matte" | "satin" | "glossy" | "shimmer";
@@ -67,27 +67,6 @@ export const shadeCategories: ShadeCategory[] = [
     ],
   },
   {
-    id: "eyeshadow",
-    label: "Eyeshadow",
-    anchor: "the eyelid, lifted toward the brow",
-    blend: "multiply",
-    strength: 0.5,
-    blobs: [
-      { x: 21, y: 29, w: 15, h: 5.2, rotate: -6 },
-      { x: 45, y: 25.4, w: 17, h: 5, rotate: -14 },
-    ],
-    shades: [
-      { name: "Golden Bronze", hex: "#B8752E", finish: "shimmer" },
-      { name: "Copper Shimmer", hex: "#B36A34", finish: "shimmer" },
-      { name: "Tangerine Pop", hex: "#D9702E", finish: "satin" },
-      { name: "Deep Plum Brown", hex: "#5A3A44", finish: "matte" },
-      { name: "Charcoal Smoke", hex: "#3A3532", finish: "matte" },
-      { name: "Jet Black Matte", hex: "#1B1714", finish: "matte" },
-      { name: "Champagne Gold", hex: "#D4AF6A", finish: "shimmer" },
-      { name: "Espresso Brown", hex: "#4A3123", finish: "matte" },
-    ],
-  },
-  {
     id: "eye-colour",
     label: "Eye colour",
     anchor: "the iris landmarks",
@@ -143,12 +122,5 @@ export const shadeCategories: ShadeCategory[] = [
   },
 ];
 
-export const lashStyles = [
-  { name: "Natural", note: "Short, sparse and soft." },
-  { name: "Wispy", note: "Longer strokes, still light." },
-  { name: "Dramatic", note: "Dense, long and dark." },
-  { name: "Doll eye", note: "Full and the darkest of the four." },
-] as const;
-
-/** Total colour shades across the tabs shown above (lash styles are counted separately). */
+/** Total colour shades across the tabs shown above. */
 export const shadeCount = shadeCategories.reduce((sum, category) => sum + category.shades.length, 0);

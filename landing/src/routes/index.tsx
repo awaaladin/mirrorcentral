@@ -4,7 +4,7 @@ import { ArrowRight, Check, Columns2, LockKeyhole, PenLine, ScanFace, Sparkles, 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { PageShell, StoreBadges, MirrorMark } from "@/components/mirror-shell";
-import { lashStyles, shadeCategories, shadeCount } from "@/lib/shades";
+import { shadeCategories, shadeCount } from "@/lib/shades";
 import { people, photoFor } from "@/lib/people";
 import portraitOne from "@/assets/mirror-portrait-one.jpg";
 import portraitTwo from "@/assets/mirror-portrait-two.jpg";
@@ -13,7 +13,7 @@ import portraitThree from "@/assets/mirror-portrait-three.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
     { title: "mirror — Nigerian Atelier Makeup Simulator" },
-    { name: "description", content: "Upload a portrait and try lips, foundation, eyes, lashes, blush and brows in shades made for deep skin tones. Face mapping runs on your phone." },
+    { name: "description", content: "Upload a portrait and try lips, foundation, eye colour, blush and brows in shades made for deep skin tones. Face mapping runs on your phone." },
     { property: "og:title", content: "mirror — Nigerian Atelier Makeup Simulator" },
     { property: "og:description", content: "Face mapping and makeup preview that run on your phone, with shades made for deep skin tones." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
@@ -47,7 +47,7 @@ function HomePage() {
             <div className="max-w-2xl">
               <p className="mb-5 text-xs font-semibold uppercase text-primary">Nigerian Atelier Edition</p>
               <h1 className="text-balance font-display text-6xl leading-[.9] sm:text-7xl lg:text-8xl">Makeup, imagined <em className="text-primary">on you.</em></h1>
-              <p className="mt-7 max-w-lg text-base leading-relaxed text-foreground/75 sm:text-lg">Choose a portrait and mirror maps 468 points of the face on your phone, then paints lips, foundation, eyes, lashes, blush and brows in shades made for deep skin tones. The face mapping and preview work offline.</p>
+              <p className="mt-7 max-w-lg text-base leading-relaxed text-foreground/75 sm:text-lg">Choose a portrait and mirror maps 468 points of the face on your phone, then paints lips, foundation, eye colour, blush and brows in shades made for deep skin tones. The face mapping and painting happen on the phone.</p>
               <div className="mt-8 flex flex-wrap gap-3"><Button asChild size="lg" className="h-12 rounded-full px-7"><Link to="/guide">See how it works <ArrowRight /></Link></Button><Button asChild variant="outline" size="lg" className="h-12 rounded-full bg-background/70 px-7 backdrop-blur"><a href="#download">Download mirror</a></Button></div>
               <div className="mt-7"><StoreBadges /></div>
             </div>
@@ -84,7 +84,6 @@ function HomePage() {
                   <p className="mt-4 text-xs text-background/50">Tap a selected shade again to remove it. In the app this layer follows {category.anchor}.</p>
                 </div>
                 <div className="mt-10 space-y-9"><Control label="Pigment saturation" value={saturation} onChange={setSaturation} /><Control label="Intensity" value={intensity} onChange={setIntensity} /></div>
-                <div className="mt-10 border-t border-background/10 pt-6"><p className="text-xs uppercase text-background/50">Lashes · four styles</p><div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">{lashStyles.map((style) => <p key={style.name}><span className="text-background">{style.name}</span> <span className="text-background/50">{style.note}</span></p>)}</div></div>
               </div>
             </div>
           </div>
@@ -94,7 +93,7 @@ function HomePage() {
           <div className="reveal-flow mx-auto max-w-3xl text-center"><p className="text-xs font-semibold uppercase text-primary">What the Studio does</p><h2 className="mt-4 text-balance text-5xl leading-none sm:text-7xl">From one photo to a look you can keep.</h2></div>
           <div className="mt-20 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             <Feature icon={<ScanFace />} title="Face mapping on your phone" copy="MediaPipe's face landmarker finds 468 points plus the irises, on the device. It wants exactly one face and tells you plainly if it finds none or several." />
-            <Feature icon={<Sparkles />} title={`${shadeCount} shades and four lash styles`} copy="Lips, foundation from Porcelain Fair to Deep Mystery Ebony, eyeshadow, eye colour, blush and brows. Every shade has a real finish: matte, satin, glossy or shimmer." />
+            <Feature icon={<Sparkles />} title={`${shadeCount} shades with real finishes`} copy="Lips, foundation from Porcelain Fair to Deep Mystery Ebony, eye colour, blush and brows. Every shade has a real finish: matte, satin, glossy or shimmer." />
             <Feature icon={<PenLine />} title="Your own shades" copy="Need a colour that is not in the library? Name it, type a hex code, and it is saved on your phone for any account." />
             <Feature icon={<Columns2 />} title="Honest before and after" copy="Drag across the photo to wipe between your original portrait and the makeup actually rendered on it." />
             <Feature icon={<Check />} title="Named, reopenable looks" copy="Save a look as Bridal Glam or anything else. Open it again later and keep editing, search your saved looks, or delete the ones you do not need." />

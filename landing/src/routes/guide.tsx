@@ -40,12 +40,11 @@ const steps: Step[] = [
   },
   {
     title: "Pick a layer, then a shade",
-    body: "Along the top of the shade panel are the layers: Lips, Foundation, Eyeshadow, Eye Color, Lashes, Blush and Brows. Choose one and the shade spectrum below shows its colours. Tap a swatch to apply it to your photo straight away.",
+    body: "Along the top of the shade panel are the layers: Lips, Foundation, Eye Color, Blush and Brows. Choose one and the shade spectrum below shows its colours. Tap a swatch to apply it to your photo straight away.",
     points: [
       "The name and finish (matte, satin, glossy or shimmer) of the chosen shade appear beside the spectrum.",
       "Search a layer's shades by name, for example “brick” in Lips.",
       "Tap a selected swatch again, or press REMOVE, to take that layer off.",
-      "Lashes work differently: you pick a style (Natural, Wispy, Dramatic or Doll eye) instead of a colour.",
       "Eye Color tints the iris and keeps the natural highlight.",
     ],
   },
@@ -64,7 +63,7 @@ const steps: Step[] = [
   },
   {
     title: "Save the look",
-    body: "Name the look (for example Bridal Glam) and press SAVE. It appears under Recent Looks on the Looks tab, with the photo, shades and lash style remembered.",
+    body: "Name the look (for example Bridal Glam) and press SAVE. It appears under Recent Looks on the Looks tab, with the photo and shades remembered.",
     points: [
       "Tap a saved look to reopen it in the Studio and keep editing.",
       "The ⋮ menu on each look has Edit and Delete. Simulate is listed too, but background removal and relighting are not built yet.",
@@ -85,6 +84,7 @@ const steps: Step[] = [
 const soon = [
   ["Live camera simulation", "Try makeup on the camera feed."],
   ["Background clean-up and relighting", "Remove the background from a saved look and light it like a studio portrait."],
+  ["Eyeshadow, eyeliner and lashes", "Built, but held back until they look right on deep skin tones."],
   ["Gele and head-wrap preview", "Built, but held back until it looks right."],
   ["Mirror Studio", "Client Mode and a larger Showroom allowance, on the account you already have."],
 ];

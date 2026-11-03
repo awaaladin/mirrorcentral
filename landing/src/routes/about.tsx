@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/mirror-shell";
-import { lashStyles, shadeCount } from "@/lib/shades";
+import { shadeCount } from "@/lib/shades";
 import { photoFor, students, team, type Person } from "@/lib/people";
 
 export const Route = createFileRoute("/about")({ head: () => ({ meta: [
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/about")({ head: () => ({ meta: [
 const facts = [
   ["468", "face points mapped on the phone"],
   [String(shadeCount), "shades with real finishes"],
-  [String(lashStyles.length), "lash styles"],
+  ["3", "free Showroom AI analyses a month"],
   ["10", "free photos every month"],
 ] as const;
 
