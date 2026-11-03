@@ -8,8 +8,8 @@ import { PageShell, StoreBadges } from "@/components/mirror-shell";
 import { ApiError, listPlans, login, register, startCheckout, type AuthUser, type BillingPlan, type PlanPublic } from "@/lib/api";
 
 export const Route = createFileRoute("/pricing")({ head: () => ({ meta: [
-  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Mirror is free with 10 photos and 3 Showroom AI analyses a month. Mirror Personal is ₦2,000 for 30 days." },
-  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Free to start. Mirror Personal is ₦2,000 for 30 days. Mirror Studio is coming soon." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
+  { title: "Pricing — mirror Nigerian Atelier Edition" }, { name: "description", content: "Mirror is free with 10 photos and 3 Showroom AI analyses a month. Mirror Personal is ₦7,500 a month." },
+  { property: "og:title", content: "mirror pricing" }, { property: "og:description", content: "Free to start. Mirror Personal is ₦7,500 a month. Mirror Studio is coming soon." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
 ] }), component: PricingPage });
 
 const naira = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 });

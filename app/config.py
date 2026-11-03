@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     public_base_url: str = "https://mirrorcentral.vercel.app"
     # In whole naira; one payment buys plan_period_days. "solo" is Mirror Personal. (A new name,
     # not SOLO_PLAN_PRICE_NGN, so an old deployed value for the retired one-time price can't apply.)
-    personal_plan_price_ngn: int = 2000
+    personal_plan_price_ngn: int = 7500
     studio_plan_price_ngn: int = 12000
     # Personal is on sale; Studio (Pro) isn't built out yet.
     solo_plan_available: bool = True

@@ -31,7 +31,7 @@ def _checkout(client: TestClient, headers: dict[str, str], plan: str = "solo") -
     return response.json()["reference"], init
 
 
-def _charge(reference: str, amount_kobo: int = 200_000) -> dict:
+def _charge(reference: str, amount_kobo: int = 750_000) -> dict:
     return {"id": 4242, "reference": reference, "amount": amount_kobo, "status": "success", "currency": "NGN"}
 
 
@@ -48,7 +48,7 @@ def test_checkout_reference_and_metadata_identify_mirror(client: TestClient) -> 
 
     assert reference.startswith("MIRROR-PRO-")
     kwargs = init.call_args.kwargs
-    assert kwargs["amount_kobo"] == 200_000
+    assert kwargs["amount_kobo"] == 750_000
     assert kwargs["callback_url"].endswith("/billing/return")
     assert kwargs["metadata"]["app"] == "MIRROR"
     assert kwargs["metadata"]["custom_fields"][0]["value"] == "Mirror"
@@ -126,6 +126,6 @@ def test_return_page_confirms_payment(client: TestClient) -> None:
 
 def test_plans_are_public(client: TestClient) -> None:
     plans = client.get("/billing/plans").json()
-    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 2000, "studio": 12000}
+    assert {p["plan"]: p["price_ngn"] for p in plans} == {"solo": 7500, "studio": 12000}
     assert {p["plan"]: p["available"] for p in plans} == {"solo": True, "studio": False}
     assert {p["plan"]: p["name"] for p in plans} == {"solo": "Mirror Personal (30 days)", "studio": "Mirror Studio (30 days)"}
