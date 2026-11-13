@@ -22,4 +22,5 @@ def test_all_models_create_tables_cleanly() -> None:
         "device_tokens",
         "payments",
         "usage_events",
+        "mirror_crash_reports",
     }

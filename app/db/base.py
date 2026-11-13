@@ -12,6 +12,7 @@ from app.models.admin_user import AdminUser  # noqa: F401
 from app.models.app_release import AppRelease  # noqa: F401
 from app.models.device_token import DeviceToken  # noqa: F401
 from app.models.client_profile import ClientProfile  # noqa: F401
+from app.models.crash_report import CrashReport  # noqa: F401
 from app.models.enhance_job import EnhanceJob  # noqa: F401
 from app.models.enhance_usage import EnhanceUsage  # noqa: F401
 from app.models.makeup_look import MakeupLook  # noqa: F401
