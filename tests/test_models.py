@@ -23,4 +23,5 @@ def test_all_models_create_tables_cleanly() -> None:
         "payments",
         "usage_events",
         "mirror_crash_reports",
+        "mirror_downloads",
     }

@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.models.app_release import AppRelease
+from app.config import get_settings
 from app.models.crash_report import CrashReport
+from app.models.download_event import DownloadEvent
 from app.models.enums import AppPlatform
 from app.schemas.app_releases import AppReleasePublic
 
@@ -18,11 +21,7 @@ from app.schemas.app_releases import AppReleasePublic
 router = APIRouter(prefix="/app", tags=["app-releases"])
 
 
-@router.get("/version", response_model=AppReleasePublic)
-async def get_latest_version(
-    platform: AppPlatform = AppPlatform.ANDROID,
-    session: AsyncSession = Depends(get_session),
-) -> AppRelease:
+async def _latest_release(session: AsyncSession, platform: AppPlatform) -> AppRelease:
     result = await session.execute(
         select(AppRelease)
         .where(AppRelease.platform == platform)
@@ -33,6 +32,40 @@ async def get_latest_version(
     if release is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No release published yet.")
     return release
+
+
+@router.get("/version", response_model=AppReleasePublic)
+async def get_latest_version(
+    request: Request,
+    platform: AppPlatform = AppPlatform.ANDROID,
+    session: AsyncSession = Depends(get_session),
+) -> AppReleasePublic:
+    release = await _latest_release(session, platform)
+    # The website's Download button and the app's update prompt both read this link, so pointing it
+    # at /app/download counts every download without either of them changing.
+    source = "app" if "okhttp" in request.headers.get("user-agent", "").lower() else "web"
+    counted = f"{get_settings().public_base_url}/app/download?platform={platform.value}&src={source}"
+    return AppReleasePublic.model_validate(release).model_copy(update={"download_url": counted})
+
+
+# Link-preview fetchers, crawlers and command-line tools aren't people downloading the app.
+_NOT_PEOPLE = ("bot", "crawl", "spider", "preview", "facebookexternalhit", "whatsapp/", "telegram", "slack", "curl", "wget", "headless")
+
+
+@router.get("/download")
+async def download_app(
+    request: Request,
+    platform: AppPlatform = AppPlatform.ANDROID,
+    src: str = "web",
+    session: AsyncSession = Depends(get_session),
+) -> RedirectResponse:
+    """Counts a download, then sends the person to the APK. Keeps no IP address or user agent."""
+    release = await _latest_release(session, platform)
+    agent = request.headers.get("user-agent", "").lower()
+    if not any(marker in agent for marker in _NOT_PEOPLE) and "range" not in request.headers:
+        session.add(DownloadEvent(version_code=release.version_code, source=src if src in ("web", "app") else "web"))
+        await session.commit()
+    return RedirectResponse(release.download_url, status_code=status.HTTP_302_FOUND)
 
 
 log = logging.getLogger(__name__)
